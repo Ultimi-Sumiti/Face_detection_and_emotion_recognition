@@ -1,7 +1,6 @@
 *.DS_Store
 tryVJ.cpp
 reciver.cpp
-sender.py
 *.out
 .vscode
 build
