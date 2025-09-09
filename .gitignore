@@ -5,3 +5,4 @@ sender.py
 *.out
 .vscode
 build
+cropped_imgs/*.png

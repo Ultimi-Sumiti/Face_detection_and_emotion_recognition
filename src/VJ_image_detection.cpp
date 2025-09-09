@@ -4,13 +4,13 @@
 #include "opencv2/videoio.hpp"
 #include <iostream>
 
-void detectAndDisplay( cv::Mat frame, cv::CascadeClassifier f_cascade);
+void vj_detect( cv::Mat frame, cv::CascadeClassifier f_cascade);
 
 int main(void){
 
     cv::CascadeClassifier face_cascade;
 
-    //-- 1. Load the cascades
+    // Load the cascades.
     if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
 
         std::cout << "--(!)Error loading face cascade\n";
@@ -19,15 +19,15 @@ int main(void){
 
     std::string img_path = "../dataset_detection/images/angry (1).jpg";
     cv::Mat img = cv::imread(img_path);
-    detectAndDisplay(img, face_cascade);
+    vj_detect(img, face_cascade);
 
 
     return 0;
 }
 
 
-void detectAndDisplay( cv::Mat frame , cv::CascadeClassifier f_cascade){
-    
+void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
+
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor( frame, frame_gray, cv::COLOR_BGR2GRAY );
@@ -39,28 +39,33 @@ void detectAndDisplay( cv::Mat frame , cv::CascadeClassifier f_cascade){
     cv::imshow( "Window", frame_gray );
     cv::waitKey(0);
 
-    //-- Detect faces on the frame in gray scale.
+    // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
     f_cascade.detectMultiScale( frame_gray, faces );
 
     // Folder path in which will be saved the images
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
-    // Vector of cropped images
+    // Vector of cropped images and vector of bounding boxes
     std::vector<cv::Mat>  cropped_imgs; 
+
     for (size_t i = 0; i < faces.size(); i++){
 
         cv::Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
-        cv::Rect face_rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
-        // Draw the box over the detection
-        cv::rectangle(frame, face_rect, cv::Scalar(255, 0, 255), 4);  
-
-        cv::Mat faceROI = frame_gray( faces[i] );
+        
+        // Cropping the detected faces.
+        cv::Mat faceROI = frame( faces[i] );
         cropped_imgs.push_back(faceROI.clone());
-
+        // Saving the cropped images.
         cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
     }
 
-    //-- Show what you got
+    // Draw the box over the detection.
+    for (size_t i = 0; i < faces.size(); i++){
+
+        cv::rectangle(frame, faces[i], cv::Scalar(255, 0, 255), 4);      
+    }
+    
+    // Show what you got.
     cv::imshow( "Window", frame );
     cv::waitKey(0);
 
