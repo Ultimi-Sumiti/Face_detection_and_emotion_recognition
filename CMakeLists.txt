@@ -17,17 +17,16 @@ add_executable(out
 
 target_link_libraries(out CVFinal)
 
-#find_package(OpenCV 4 REQUIRED)
-#if(OpenCV_FOUND)
-#    message(STATUS "OpenCV library found.")
-#    include_directories(${OpenCV_INCLUDE_DIRS})
-#    target_link_libraries(out
-#        #opencv_highgui
-#        #opencv_core
-#        #opencv_imgcodecs
-#        #opencv_imgproc
-#        #opencv_features2d
-#        )
-#else()
-#    message(FATAL_ERROR "OpenCV library not found.")
-#endif()
+find_package(OpenCV 4 REQUIRED)
+if(OpenCV_FOUND)
+    message(STATUS "OpenCV library found.")
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(out
+        opencv_highgui
+        opencv_core
+        opencv_imgproc
+        opencv_objdetect
+        )
+else()
+    message(FATAL_ERROR "OpenCV library not found.")
+endif()
