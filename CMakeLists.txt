@@ -8,7 +8,7 @@ include_directories(include)
 
 add_library(CVFinal
     include/utils.h
-    src/utils.cpp
+    lib/utils.cpp
     )
 
 add_executable(out
