@@ -19,7 +19,7 @@ int main(void){
         return -1;
     };
 
-    std::string img_path = "../dataset_detection/images/happy_1.jpg";
+    std::string img_path = "../dataset_detection/images/surprise_3.jpg";
     cv::Mat img = cv::imread(img_path);
     // Detect and save the faces in a specific folder.
     vj_detect(img, face_cascade);
@@ -62,7 +62,7 @@ int main(void){
 // Detection function using the ViolaJones algorithm.
 void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
-    std::string img_path = "../dataset_detection/labels/happy_1.txt";
+    std::string img_path = "../dataset_detection/labels/surprise_3.txt";
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
