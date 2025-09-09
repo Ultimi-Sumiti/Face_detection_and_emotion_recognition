@@ -4,3 +4,4 @@ reciver.cpp
 sender.py
 *.out
 .vscode
+build
