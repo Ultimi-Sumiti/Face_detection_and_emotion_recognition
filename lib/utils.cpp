@@ -87,12 +87,15 @@ void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes){
     std::vector<cv::Rect> rects_label;
 
     for (const auto& face: labels){
-        x = (face[1] - face[3]) * IMG_WIDTH;
-        y = (face[2] - face[4]) * IMG_HEIGHT;
+        x = (face[1] - face[3]/2) * IMG_WIDTH;
+        y = (face[2] - face[4]/2) * IMG_HEIGHT;
+        //std::cout<<x<<" "<<y<<std::endl;
         width = face[3] * IMG_WIDTH;
         height = face[4] * IMG_HEIGHT;
         rects_label.push_back(cv::Rect(x, y, width, height));
     }
+
+    printRectDetails(rects_label);
     float current_IoU;
     std::vector<float> IOUs(boxes.size(), 0.0f); 
 
