@@ -19,7 +19,7 @@ int main(void){
         return -1;
     };
 
-    std::string img_path = "../dataset_detection/images/angry_1.jpg";
+    std::string img_path = "../dataset_detection/images/angry_6.jpg";
     cv::Mat img = cv::imread(img_path);
     // Detect and save the faces in a specific folder.
     vj_detect(img, face_cascade);
@@ -63,7 +63,7 @@ int main(void){
 void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
 
-    std::string img_path = "../dataset_detection/labels/angry_1.txt";
+    std::string img_path = "../dataset_detection/labels/angry_6.txt";
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -88,7 +88,7 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
         1.1, // scaleFactor
         5,   // minNeighbors
         0,   // flags
-        cv::Size(30, 30), // minSize
+        cv::Size(70,70), // minSize
         cv::Size(),       // maxSize
         true              // outputRejectLevels -> SET TO TRUE
     );
@@ -113,8 +113,10 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
 
     printRectDetails(filtered_faces);
-    print_IOU(img_path, filtered_faces);
+    print_IOU(img_path, filtered_faces, frame.cols, frame.rows);
+    std::vector<cv::Rect> label_rects = compute_rectangles(img_path, frame.cols, frame.rows);
 
+    
     /*
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
@@ -128,22 +130,28 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
         cropped_imgs.push_back(faceROI.clone());
         // Saving the cropped images.
         cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
-    }
+    }*/
 
     // Draw the box over the detection.
-    for (size_t i = 0; i < faces.size(); i++){
-        cv::rectangle(frame, faces[i], cv::Scalar(255, 0, 255), 4);      
+    for (size_t i = 0; i < filtered_faces.size(); i++){
+        cv::rectangle(frame, filtered_faces[i], cv::Scalar(255, 0, 255), 4);      
+    }
+    // Draw the label box.
+    for (size_t i = 0; i < label_rects.size(); i++){
+        cv::rectangle(frame, label_rects[i], cv::Scalar(255, 255, 0), 4);      
     }
     
     // Show the images detected.
     cv::imshow("Window", frame);
     cv::waitKey(0);
 
+    /*
     for (size_t i = 0; i < cropped_imgs.size(); i++){
 
         std::string window_name = "Window " + std::to_string(i);
         cv::imshow(window_name, cropped_imgs[i]);
     }
 
-    cv::waitKey(0);*/
+    cv::waitKey(0);
+    */
 }

@@ -4,8 +4,6 @@
 #include <sstream>
 #include "../include/utils.h"
 
-const int IMG_WIDTH = 1280;
-const int IMG_HEIGHT = 853;
 
 void parse_command_line(
     int argc,
@@ -81,19 +79,24 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename){
     return faces;
 }
 
-void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes){
+std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, int img_height){
     std::vector<std::vector<float>> labels = parse_labels(filename);
     int x, y, width, height;
     std::vector<cv::Rect> rects_label;
 
     for (const auto& face: labels){
-        x = (face[1] - face[3]/2) * IMG_WIDTH;
-        y = (face[2] - face[4]/2) * IMG_HEIGHT;
+        x = (face[1] - face[3]/2) * img_width;
+        y = (face[2] - face[4]/2) * img_height;
         //std::cout<<x<<" "<<y<<std::endl;
-        width = face[3] * IMG_WIDTH;
-        height = face[4] * IMG_HEIGHT;
+        width = face[3] * img_width;
+        height = face[4] * img_height;
         rects_label.push_back(cv::Rect(x, y, width, height));
     }
+    return rects_label;
+}
+
+void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height){
+    std::vector<cv::Rect> rects_label = compute_rectangles(filename, img_width, img_height);
 
     printRectDetails(rects_label);
     float current_IoU;
