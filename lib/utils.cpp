@@ -33,21 +33,18 @@ void parse_command_line(
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
 float compute_IOU(cv::rectangle& box1, cv::rectangle& box2){
-    // Define the variable to store the areas of intersection, union and the respective IoU
-    double areas_int[3];
-    double areas_union[3];
+    // Define the variable to store the areas of intersection, union and the respective IoU.
+    double areas_int;
+    double areas_union;
 
-    for (int i = 0; i < rect_p.size(); ++i)
-    {
-        if (!miss[i])
-        {
-            cv::Rect intersect = rect_p[i] & rect_t[i];
-            areas_int[i] = intersect.area();
-            areas_union[i] = rect_p[i].area() + rect_t[i].area() - areas_int[i];
+    // Compute intersection union of boxes. 
+    cv::Rect intersect = box1 & box2;
+    areas_int = intersect.area();
+    areas_union = box1.area() + box2.area() - areas_int[i];
 
-            this->IoU[i] = areas_int[i] / areas_union[i];
-        }
-    }
+    // Compute and return the IoU.
+    IoU = areas_int / areas_union;
+    return IoU;
 }
 
 
