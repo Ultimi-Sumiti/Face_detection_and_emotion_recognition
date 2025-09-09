@@ -5,6 +5,9 @@
 
 #include "../include/utils.h"
 
+const int IMG_WIDTH = 1280;
+const int IMG_HEIGHT = 853;
+
 void parse_command_line(
     int argc,
     char **argv,
@@ -80,8 +83,29 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename){
 }
 
 void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes){
-    std::vector<std::vector<float>> labels parse_labels(filename);
-    while(labels.has)
+    std::vector<std::vector<float>> labels = parse_labels(filename);
+    int x, y, width, height;
+    std::vector<cv::Rect> rects_label;
+
+    for (const auto& face: labels){
+        x = (face[1] - face[3]) * IMG_WIDTH;
+        y = (face[2] - face[4]) * IMG_HEIGHT;
+        width = face[3] * IMG_WIDTH;
+        height = face[4] * IMG_HEIGHT;
+        rects_label.push_back(cv::Rect(x, y, width, height));
+    }
+    float current_IoU;
+    std::vector<float> IOUs(boxes.size(), 0.0f); 
+
+    for(int i = 0; i < rects_label.size(); i++){
+        for(int j = 0; j < boxes.size(); j++){
+            current_IoU = compute_IOU(rects_label[i], boxes[j]);
+            if(current_IoU > IOUs[i]){
+                IOUs[i] = current_IoU;
+            }
+        }
+        std::cout<<"IOU is : "<<IOUs[i]<<std::endl;
+    }
 }
 
 int main(){
