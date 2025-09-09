@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cstdio>  // popen, pclose
 
-void vj_detect( cv::Mat frame, cv::CascadeClassifier f_cascade);
+void vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 
 int main(void){
 
@@ -59,22 +59,22 @@ int main(void){
 }
 
 // Detection function using the ViolaJones algorithm.
-void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
+void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
-    cv::cvtColor( frame, frame_gray, cv::COLOR_BGR2GRAY );
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
     // Histogram equalization.
-    cv::equalizeHist( frame_gray, frame_gray ); 
+    cv::equalizeHist(frame_gray, frame_gray); 
 
     // Plotting the image equalized.
     cv::namedWindow("Window");
-    cv::imshow( "Window", frame_gray );
+    cv::imshow("Window", frame_gray);
     cv::waitKey(0);
 
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
-    f_cascade.detectMultiScale( frame_gray, faces );
+    f_cascade.detectMultiScale(frame_gray, faces);
 
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
@@ -84,7 +84,7 @@ void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
     for (size_t i = 0; i < faces.size(); i++){
 
         // Cropping the detected faces.
-        cv::Mat faceROI = frame( faces[i] );
+        cv::Mat faceROI = frame(faces[i]);
         cropped_imgs.push_back(faceROI.clone());
         // Saving the cropped images.
         cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
@@ -96,7 +96,7 @@ void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
     }
     
     // Show the images detected.
-    cv::imshow( "Window", frame );
+    cv::imshow("Window", frame);
     cv::waitKey(0);
 
     for (size_t i = 0; i < cropped_imgs.size(); i++){
