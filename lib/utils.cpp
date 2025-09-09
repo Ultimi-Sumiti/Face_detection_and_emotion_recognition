@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
-
 #include "../include/utils.h"
 
 const int IMG_WIDTH = 1280;
@@ -108,6 +107,32 @@ void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes){
     }
 }
 
+void printRectDetails(const std::vector<cv::Rect>& rects) {
+    // Check if the vector is empty first
+    if (rects.empty()) {
+        std::cout << "The vector of rectangles is empty." << std::endl;
+        return;
+    }
+
+    // Use an index-based loop to easily number the rectangles
+    for (size_t i = 0; i < rects.size(); ++i) {
+        const cv::Rect& r = rects[i];
+
+        // Calculate the center coordinates
+        int centerX = r.x + r.width / 2;
+        int centerY = r.y + r.height / 2;
+
+        // Print the details in a formatted way
+        std::cout << "Rect " << i << ":"
+                  << " Center=[" << centerX << ", " << centerY << "],"
+                  << " Width=" << r.width << ","
+                  << " Height=" << r.height
+                  << std::endl;
+    }
+}
+
+
+/*
 int main(){
     std::vector<std::vector<float>> faces = parse_labels("../dataset_detection/labels/angry_1.txt");
     if(!faces.empty()){
@@ -118,4 +143,4 @@ int main(){
         std::cout<<faces[0][4]<<std::endl;
     }
 
-}
+}*/

@@ -4,6 +4,7 @@
 #include "opencv2/videoio.hpp"
 #include <iostream>
 #include <cstdio>  // popen, pclose
+#include "../include/utils.h"
 
 void vj_detect( cv::Mat frame, cv::CascadeClassifier f_cascade);
 
@@ -24,7 +25,7 @@ int main(void){
     vj_detect(img, face_cascade);
 
     // Call the python pipeline to classify the faces
-    FILE* pipe = popen("python3 sender.py", "r"); // "r" to read
+    /*FILE* pipe = popen("python3 sender.py", "r"); // "r" to read
     if (!pipe) {
         std::cerr << "Error in opening the pipe" << std::endl;
         return -1;
@@ -54,13 +55,15 @@ int main(void){
         }
          
     }
-
+*/
     return 0;
 }
 
 // Detection function using the ViolaJones algorithm.
 void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
 
+
+    std::string img_path = "../dataset_detection/labels/angry_1.txt";
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor( frame, frame_gray, cv::COLOR_BGR2GRAY );
@@ -75,7 +78,10 @@ void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
     f_cascade.detectMultiScale( frame_gray, faces );
+    printRectDetails(faces);
+    print_IOU(img_path, faces);
 
+    /*
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
     // Vector of cropped images and vector of bounding boxes.
@@ -105,5 +111,5 @@ void vj_detect( cv::Mat frame , cv::CascadeClassifier f_cascade){
         cv::imshow(window_name, cropped_imgs[i]);
     }
 
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 }
