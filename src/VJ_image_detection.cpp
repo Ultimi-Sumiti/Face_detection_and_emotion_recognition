@@ -19,7 +19,7 @@ int main(void){
         return -1;
     };
 
-    std::string img_path = "../dataset_detection/images/angry_6.jpg";
+    std::string img_path = "../dataset_detection/images/happy_1.jpg";
     cv::Mat img = cv::imread(img_path);
     // Detect and save the faces in a specific folder.
     vj_detect(img, face_cascade);
@@ -62,8 +62,7 @@ int main(void){
 // Detection function using the ViolaJones algorithm.
 void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
-
-    std::string img_path = "../dataset_detection/labels/angry_6.txt";
+    std::string img_path = "../dataset_detection/labels/happy_1.txt";
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -71,8 +70,8 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
     cv::equalizeHist(frame_gray, frame_gray); 
 
     // Plotting the image equalized.
-    cv::namedWindow("Window");
-    cv::imshow("Window", frame_gray);
+    cv::namedWindow("Window",cv::WINDOW_NORMAL);
+    cv::imshow("Window", frame);
     cv::waitKey(0);
 
     // Detect faces on the frame in gray scale.
@@ -97,15 +96,15 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
     // Loop through each detected face
     std::vector<cv::Rect> filtered_faces; 
+    int min_score = 1000000;
+    int score = 0;
     for(size_t i = 0; i < faces.size(); i++){
         // Print the confidence score (level weight) for the corresponding face
+        score = calculateBlurScore(frame, faces[i]) * faces[i].area();
         std::cout << "Face " << i 
-                  << " -> Confidence Score: " << levelWeights[i] 
-                  << std::endl;
-        std::cout << " -> Blur score: " << calculateBlurScore(frame, faces[i])
-                  << std::endl;
-        blurScore.push_back(calculateBlurScore(frame, faces[i]));
-        if(blurScore[i] > 100){
+                  << " -> Confidence Score: " << score <<std::endl;
+        // Here we filter the detection: if they're both not defined and small we filter out.
+        if(score > min_score){
             filtered_faces.push_back(faces[i]);
         }
     }
@@ -142,6 +141,9 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
     }
     
     // Show the images detected.
+
+    double scale = 0.5;
+    cv::resize(frame, frame, cv::Size(), scale, scale);
     cv::imshow("Window", frame);
     cv::waitKey(0);
 
