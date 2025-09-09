@@ -19,7 +19,7 @@ int main(void){
         return -1;
     };
 
-    std::string img_path = "../dataset_detection/images/angry_2.jpg";
+    std::string img_path = "../dataset_detection/images/angry_1.jpg";
     cv::Mat img = cv::imread(img_path);
     // Detect and save the faces in a specific folder.
     vj_detect(img, face_cascade);
@@ -63,7 +63,7 @@ int main(void){
 void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
 
-    std::string img_path = "../dataset_detection/labels/angry_2.txt";
+    std::string img_path = "../dataset_detection/labels/angry_1.txt";
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -77,9 +77,43 @@ void vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
-    f_cascade.detectMultiScale( frame_gray, faces );
-    printRectDetails(faces);
-    print_IOU(img_path, faces);
+    std::vector<int> rejectLevels;   
+    std::vector<double> levelWeights;   // This will hold the confidence scores
+    std::vector<double> blurScore;
+    f_cascade.detectMultiScale(
+        frame_gray,
+        faces,
+        rejectLevels,
+        levelWeights,
+        1.1, // scaleFactor
+        5,   // minNeighbors
+        0,   // flags
+        cv::Size(30, 30), // minSize
+        cv::Size(),       // maxSize
+        true              // outputRejectLevels -> SET TO TRUE
+    );
+
+    std::cout << "Found " << faces.size() << " faces." << std::endl;
+
+    // Loop through each detected face
+    std::vector<cv::Rect> filtered_faces; 
+    for(size_t i = 0; i < faces.size(); i++){
+        // Print the confidence score (level weight) for the corresponding face
+        std::cout << "Face " << i 
+                  << " -> Confidence Score: " << levelWeights[i] 
+                  << std::endl;
+        std::cout << " -> Blur score: " << calculateBlurScore(frame, faces[i])
+                  << std::endl;
+        blurScore.push_back(calculateBlurScore(frame, faces[i]));
+        if(blurScore[i] > 100){
+            filtered_faces.push_back(faces[i]);
+        }
+    }
+    std::cout<<std::endl;
+
+
+    printRectDetails(filtered_faces);
+    print_IOU(img_path, filtered_faces);
 
     /*
     // Folder path in which will be saved the images.

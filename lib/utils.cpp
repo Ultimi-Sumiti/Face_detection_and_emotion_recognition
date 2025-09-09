@@ -135,6 +135,28 @@ void printRectDetails(const std::vector<cv::Rect>& rects) {
 }
 
 
+double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
+    // 1. Isolate the Region of Interest (ROI)
+    cv::Mat roi_mat = image(roi);
+
+    // 2. Convert to Grayscale
+    cv::Mat gray_roi;
+    cv::cvtColor(roi_mat, gray_roi, cv::COLOR_BGR2GRAY);
+
+    // 3. Apply the Laplacian Operator
+    cv::Mat laplacian_image;
+    // We use CV_64F (double) to avoid losing negative values from the operator
+    cv::Laplacian(gray_roi, laplacian_image, CV_64F);
+
+    // 4. Calculate the Mean and Standard Deviation
+    cv::Scalar mean, stddev;
+    cv::meanStdDev(laplacian_image, mean, stddev);
+
+    // 5. The variance is the standard deviation squared
+    return stddev.val[0] * stddev.val[0];
+}
+
+
 /*
 int main(){
     std::vector<std::vector<float>> faces = parse_labels("../dataset_detection/labels/angry_1.txt");

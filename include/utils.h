@@ -22,4 +22,6 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename);
 void printRectDetails(const std::vector<cv::Rect>& rects);
 
 void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes);
+
+double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi);
 #endif
