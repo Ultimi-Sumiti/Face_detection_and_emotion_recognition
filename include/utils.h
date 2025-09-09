@@ -13,7 +13,7 @@ void parse_command_line(int argc, char* argv[], std::string& input_path,
         std::string& label_path);
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
-float compute_IOU(cv::rectangle& box1, cv::rectangle& box2);
+float compute_IOU(cv::Rect& box1, cv::Rect& box2);
 
 // Function to parse the labels of the positions and emotion from the given textual file.
 std::vector<std::vector<float>> parse_labels(const std::string& filename);
