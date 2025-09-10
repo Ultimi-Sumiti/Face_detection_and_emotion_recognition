@@ -130,7 +130,7 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
 
 
 // Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> vj_detect(std::string& filename){
+std::vector<cv::Rect> face_detect(std::string& filename){
     std::string image_path = image_dir + filename + image_extension;
     std::string label_path = label_dir + filename + label_extension;
 

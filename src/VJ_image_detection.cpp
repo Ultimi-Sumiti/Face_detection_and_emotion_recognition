@@ -12,7 +12,7 @@ int main(void){
 
     std::string img_name = "sad_2";
     // Detect and save the faces in a specific folder.
-    vj_detect(img_name);
+    face_detect(img_name);
 
     // Call the python pipeline to classify the faces
     /*FILE* pipe = popen("python3 sender.py", "r"); // "r" to read
