@@ -198,7 +198,6 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             if(score > min_score){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
-                count++;
             }
         }
         
