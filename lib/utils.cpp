@@ -97,8 +97,6 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
 
 void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height){
     std::vector<cv::Rect> rects_label = compute_rectangles(filename, img_width, img_height);
-
-    printRectDetails(rects_label);
     float current_IoU;
     std::vector<float> IOUs(boxes.size(), 0.0f); 
 
