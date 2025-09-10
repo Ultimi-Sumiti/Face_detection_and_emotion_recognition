@@ -1,3 +1,5 @@
+print("Importing the Python Deep learning library...\n")
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -6,7 +8,7 @@ from keras.preprocessing import image
 import numpy as np
 
 ### PARAMETERS ###
-CHKP_PATH = "./model.keras"
+CHKP_PATH = "../python/model.keras"
 IMG_SIZE = 224
 CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 IMGS_DIR = "../cropped_imgs/"
@@ -29,17 +31,30 @@ def class_idx(model, img_path):
 
 def main():
 
+    print("Loading the model...\n")
     model = load_model(CHKP_PATH)
+    print("Loading DONE")
 
+    # Waiting the signal from image detection to start the recognition phase
+    # Waiting (C++)
+    with open("cpp_to_py.fifo", "r") as fifo:
+        msg = fifo.readline().strip()
+        print(f"[Python] Ricevuto da C++: {msg}")
+        fifo.flush()
+
+    
     imgs = [
         os.path.join(IMGS_DIR, filename) 
         for filename in os.listdir(IMGS_DIR) if filename != ".gitkeep"
     ]
 
-    for img in imgs:
-        idx = class_idx(model, img)
-        print(idx)
-
-
+    with open("py_to_cpp.fifo", "w") as fifo:
+        for img in imgs:
+            idx = class_idx(model, img)
+            fifo.write(f"{idx}\n")
+            fifo.flush()
+  
 if __name__ == "__main__":
     main()
+
+  
