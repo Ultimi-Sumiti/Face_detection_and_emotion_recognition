@@ -21,10 +21,12 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename);
 
 void printRectDetails(const std::vector<cv::Rect>& rects);
 
-void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height);
+std::vector<float> get_label_IOUs(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height);
   
 
 double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi);
 
 std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, int img_height);
+
+float compute_MIOU(std::vector<float>& IOUs);
 #endif

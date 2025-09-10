@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+#include <numeric>
 #include "../include/utils.h"
 
 
@@ -95,7 +96,7 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
     return rects_label;
 }
 
-void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height){
+std::vector<float> get_label_IOUs(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height){
     std::vector<cv::Rect> rects_label = compute_rectangles(filename, img_width, img_height);
     float current_IoU;
     std::vector<float> IOUs(boxes.size(), 0.0f); 
@@ -107,8 +108,8 @@ void print_IOU(std::string& filename, std::vector<cv::Rect>& boxes, int img_widt
                 IOUs[i] = current_IoU;
             }
         }
-        std::cout<<"IOU is : "<<IOUs[i]<<std::endl;
     }
+    return IOUs;
 }
 
 void printRectDetails(const std::vector<cv::Rect>& rects) {
@@ -137,24 +138,38 @@ void printRectDetails(const std::vector<cv::Rect>& rects) {
 
 
 double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
-    // 1. Isolate the Region of Interest (ROI)
+    // Isolate the Region of Interest (ROI)
     cv::Mat roi_mat = image(roi);
 
-    // 2. Convert to Grayscale
+    // Convert to Grayscale
     cv::Mat gray_roi;
     cv::cvtColor(roi_mat, gray_roi, cv::COLOR_BGR2GRAY);
 
-    // 3. Apply the Laplacian Operator
+    // Apply the Laplacian Operator
     cv::Mat laplacian_image;
     // We use CV_64F (double) to avoid losing negative values from the operator
     cv::Laplacian(gray_roi, laplacian_image, CV_64F);
 
-    // 4. Calculate the Mean and Standard Deviation
+    // Calculate the Mean and Standard Deviation
     cv::Scalar mean, stddev;
     cv::meanStdDev(laplacian_image, mean, stddev);
 
-    // 5. The variance is the standard deviation squared
+    // The variance is the standard deviation squared
     return stddev.val[0] * stddev.val[0];
+}
+
+float compute_MIOU(std::vector<float>& IOUs){
+    // Handle the edge case of an empty vector to prevent division by zero.
+    if (IOUs.empty()) {
+        return 0.0f;
+    }
+
+    // Calculate the sum of all elements in the vector.
+    //    std::accumulate(begin, end, initial_value)
+    float total_iou = std::accumulate(IOUs.begin(), IOUs.end(), 0.0f);
+
+    // Divide the sum by the number of elements to get the mean.
+    return total_iou / IOUs.size();
 }
 
 

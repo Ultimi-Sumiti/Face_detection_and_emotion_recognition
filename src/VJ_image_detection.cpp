@@ -6,9 +6,9 @@
 #include <cstdio>  // popen, pclose
 #include "../include/utils.h"
 
-void vj_detect(cv::Mat frame, std::vector<cv::CascadeClassifier>& f_cascade);
+std::vector<cv::Rect> vj_detect(std::string& filename);
 
-const std::vector<std::string> filepaths= {
+const std::vector<std::string> file_paths= {
 "../classifiers/haarcascade_eye_tree_eyeglasses.xml",
 "../classifiers/haarcascade_eye.xml",
 "../classifiers/haarcascade_frontalface_alt_tree.xml",
@@ -20,23 +20,19 @@ const std::vector<std::string> filepaths= {
 "../classifiers/haarcascade_righteye_2splits.xml",
 };
 
+const std::string image_dir = "../dataset_detection/images/";
+
+const std::string label_dir = "../dataset_detection/labels/";
+
+const std::string image_extension = ".jpg";
+
+const std::string label_extension = ".txt";
 
 int main(void){
 
-    std::vector<cv::CascadeClassifier> face_cascades (filepaths.size());
-
-    // Load the cascades.
-    for(int i = 0; i < filepaths.size(); i++ ){
-        if (!face_cascades[i].load(filepaths[i])){
-            std::cout << "Error loading face cascade\n";
-            return -1;
-        }
-    }
-
-    std::string img_path = "../dataset_detection/images/disgust_1.jpg";
-    cv::Mat img = cv::imread(img_path);
+    std::string img_name = "sad_2";
     // Detect and save the faces in a specific folder.
-    vj_detect(img, face_cascades);
+    vj_detect(img_name);
 
     // Call the python pipeline to classify the faces
     /*FILE* pipe = popen("python3 sender.py", "r"); // "r" to read
@@ -74,9 +70,12 @@ s file
 }
 
 // Detection function using the ViolaJones algorithm.
-void vj_detect(cv::Mat frame , std::vector<cv::CascadeClassifier>& f_cascades){
+std::vector<cv::Rect> vj_detect(std::string& filename){
+    std::string image_path = image_dir + filename + image_extension;
+    std::string label_path = label_dir + filename + label_extension;
 
-    std::string img_path = "../dataset_detection/labels/disgust_1.txt";
+    cv::Mat frame = cv::imread(image_path);
+
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -88,6 +87,15 @@ void vj_detect(cv::Mat frame , std::vector<cv::CascadeClassifier>& f_cascades){
     cv::imshow("Window", frame);
     cv::waitKey(0);
 
+    // Load the cascades.
+    std::vector<cv::CascadeClassifier> f_cascades (file_paths.size());
+    for(int i = 0; i < file_paths.size(); i++ ){
+        if (!f_cascades[i].load(file_paths[i])){
+            std::cout << "Error loading face cascade\n";
+            exit(1);
+        }
+    }
+
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
     std::vector<int> rejectLevels;   
@@ -97,68 +105,80 @@ void vj_detect(cv::Mat frame , std::vector<cv::CascadeClassifier>& f_cascades){
 
     cv::CascadeClassifier final_classifier;
     int score = 0;
+    std::vector<cv::Rect> filtered_faces; 
+    std::vector<cv::Rect> best_detections; 
+    int min_score = 1000000;
     int best_score = 0;
     int best_index = 0;
-    std::vector<double> scores (f_cascades.size());
+    std::vector<float> IOUs (f_cascades.size());
+    float best_MIOU = 0.0f;
+    float curr_MIOU = 0.0f;
+
+    // Checking all possible faces cascades. 
     for(int i = 0; i < f_cascades.size(); i++){
-        std::cout<< "Testing classifier number: "<<i<<std::endl;
+        std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
         faces.clear();
         f_cascades[i].detectMultiScale(
             frame_gray,
-            faces
+            faces,
+            rejectLevels,
+            levelWeights,
+            1.1, // scaleFactor
+            5,   // minNeighbors
+            0,   // flags
+            cv::Size(30, 30), // minSize
+            cv::Size(),       // maxSize
+            true              // outputRejectLevels true
         );
 
+
+        std::cout << "Found " << faces.size() << " faces." << std::endl;
         // Loop through each detected face
-        for(size_t j = 0; j < faces.size(); j++){
+        for(int j = 0; j < faces.size(); j++){
             // Print the confidence score (level weight) for the corresponding face
-            score += calculateBlurScore(frame, faces[j]) * faces[j].area();
-            
+            score = calculateBlurScore(frame, faces[j]) * faces[j].area();
+            std::cout << "Face " << j
+                << " -> Score: " << score <<std::endl;
+            // Here we filter the detection: if they're both not defined and small we filter out.
+            if(score > min_score){
+                filtered_faces.push_back(faces[j]);
+            }
         }
-        if (score > best_score){
+        
+        if(faces.size() > 0){
+            std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
+        }
+
+        IOUs = get_label_IOUs(label_path, filtered_faces, frame.cols, frame.rows);
+        for(int k = 0; k < IOUs.size(); k++){
+            std::cout<<"Rect "<<k<<" IOUs: "<<IOUs[k]<<std::endl;
+        }
+        curr_MIOU = compute_MIOU(IOUs);
+        if (curr_MIOU > best_MIOU){
             best_index = i;
-            best_score = score;
+            best_MIOU = curr_MIOU;
+            best_detections = filtered_faces;
         }
+
+        filtered_faces.clear();
     }
 
-    std::cout<<"Best classifier is: "<<filepaths[best_index]<<std::endl;    
-    std::cout<<"  with score: "<<best_score<<std::endl;
+    std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
+    std::cout<<"  with MIOU: "<<best_MIOU<<std::endl<<std::endl;
 
     final_classifier = f_cascades[best_index];
 
-    faces.clear();
-    final_classifier.detectMultiScale(
-        frame_gray,
-        faces
-    );
-    std::cout << "Found " << faces.size() << " faces." << std::endl;
-
-    std::vector<cv::Rect> filtered_faces; 
-    int min_score = 10000;
-    score = 0;
-    for(size_t j = 0; j < faces.size(); j++){
-        // Print the confidence score (level weight) for the corresponding face
-        score = calculateBlurScore(frame, faces[j]) * faces[j].area();
-        std::cout << "Face " << j
-                << " -> Confidence Score: " << score <<std::endl;
-        scores[j] += score; 
-        // Here we filter the detection: if they're both not defined and small we filter out.
-        if(score > min_score){
-            filtered_faces.push_back(faces[j]);
-        }
-    }
-
-
     std::cout<<"Detected rectangles position and size: "<<std::endl;
-    printRectDetails(filtered_faces);
+    printRectDetails(best_detections);
     std::cout<<std::endl;
-    std::vector<cv::Rect> label_rects = compute_rectangles(img_path, frame.cols, frame.rows);
+    std::vector<cv::Rect> label_rects = compute_rectangles(label_path, frame.cols, frame.rows);
     std::cout<<"Label rectangles position and size: "<<std::endl;
     printRectDetails(label_rects);
 
-    if(filtered_faces.size() == 0){
+    if(best_detections.size() == 0){
         exit(1);
     }
-    print_IOU(img_path, filtered_faces, frame.cols, frame.rows);
+    get_label_IOUs(label_path, best_detections, frame.cols, frame.rows);
     
     /*
     // Folder path in which will be saved the images.
@@ -176,11 +196,11 @@ void vj_detect(cv::Mat frame , std::vector<cv::CascadeClassifier>& f_cascades){
     }*/
 
     // Draw the box over the detection.
-    for (size_t i = 0; i < filtered_faces.size(); i++){
-        cv::rectangle(frame, filtered_faces[i], cv::Scalar(255, 0, 255), 4);      
+    for (int i = 0; i < best_detections.size(); i++){
+        cv::rectangle(frame, best_detections[i], cv::Scalar(255, 0, 255), 4);      
     }
     // Draw the label box.
-    for (size_t i = 0; i < label_rects.size(); i++){
+    for (int i = 0; i < label_rects.size(); i++){
         cv::rectangle(frame, label_rects[i], cv::Scalar(255, 255, 0), 4);      
     }
     
@@ -200,4 +220,5 @@ void vj_detect(cv::Mat frame , std::vector<cv::CascadeClassifier>& f_cascades){
 
     cv::waitKey(0);
     */
+   return best_detections;
 }
