@@ -182,7 +182,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             faces,
             rejectLevels,
             levelWeights,
-            1.1, // scaleFactor
+            1.05, // scaleFactor
             5,   // minNeighbors
             0,   // flags
             cv::Size(70, 70), // minSize
@@ -200,7 +200,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             std::cout << "Face " << j
                 << " -> Score: " << score <<std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score > min_score || blur_score > avg_blur) && faces[i].area() > min_area){
+            if((score >= min_score || blur_score > avg_blur) && faces[i].area() > min_area){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
