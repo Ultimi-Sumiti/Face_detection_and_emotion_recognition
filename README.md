@@ -1,88 +1,88 @@
-# Rilevamento di Volti e Riconoscimento delle Emozioni
+# Face Detection and Emotion Recognition
 
-[cite_start]Questo progetto implementa un sistema di visione artificiale in grado di rilevare volti umani all'interno di immagini statiche e di riconoscerne le espressioni emotive[cite: 4, 5]. [cite_start]Il sistema combina un approccio classico per il rilevamento dei volti con una rete neurale convoluzionale (CNN) pre-addestrata per la classificazione delle emozioni[cite: 4, 6, 9].
+This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection with a pre-trained convolutional neural network (CNN) for emotion classification.
 
-## 🎯 Obiettivo del Progetto
+## 🎯 Project Goal
 
-[cite_start]Lo scopo principale è sviluppare un sistema completo di analisi facciale che integri due compiti fondamentali[cite: 4]:
-1.  [cite_start]**Rilevamento dei Volti**: Identificare e isolare le regioni facciali in un'immagine[cite: 5, 7].
-2.  [cite_start]**Riconoscimento delle Emozioni**: Classificare l'espressione emotiva di ogni volto rilevato[cite: 5, 8].
+The main objective is to develop a comprehensive facial analysis system that integrates two fundamental tasks:
+1.  **Face Detection**: To identify and isolate facial regions in an image.
+2.  **Emotion Recognition**: To classify the emotional expression of each detected face.
 
-[cite_start]Il sistema è progettato per analizzare immagini statiche, fornendo in output l'immagine originale con i volti cerchiati e annotati con l'emozione predetta[cite: 13, 15].
+The system is designed to analyze static images, providing the original image with detected faces circled and annotated with the predicted emotion as output.
 
-## ⚙️ Architettura del Sistema
+## ⚙️ System Architecture
 
-Il progetto è suddiviso in due moduli principali che lavorano in sequenza.
+The project is divided into two main modules that work sequentially.
 
-### 1. Rilevamento dei Volti (C++ e OpenCV)
+### 1. Face Detection (C++ and OpenCV)
 
-[cite_start]Il primo componente utilizza l'**algoritmo di Viola-Jones**, un metodo classico noto per la sua efficienza e accuratezza[cite: 6]. [cite_start]Questa parte è implementata in **C++** sfruttando la libreria **OpenCV** e il suo framework di classificatori a cascata per localizzare i volti all'interno di un'immagine[cite: 7].
+The first component uses the **Viola-Jones algorithm**, a classic method known for its efficiency and accuracy. This part is implemented in **C++** using the **OpenCV** library and its cascade classifier framework to locate faces within an image.
 
-### 2. Riconoscimento delle Emozioni (Python e CNN)
+### 2. Emotion Recognition (Python and CNN)
 
-[cite_start]Una volta che un volto viene rilevato, la sua regione viene passata al secondo modulo[cite: 8]. [cite_start]Questo componente impiega una **Rete Neurale Convoluzionale (CNN)** pre-addestrata sul dataset FER-2013[cite: 9]. [cite_start]Il modulo, implementato in **Python**, classifica l'espressione facciale in una delle sette categorie predefinite[cite: 10]:
-* [cite_start]Arrabbiato [cite: 10]
-* [cite_start]Disgustato [cite: 10]
-* [cite_start]Spaventato [cite: 10]
-* [cite_start]Felice [cite: 10]
-* [cite_start]Triste [cite: 10]
-* [cite_start]Sorpreso [cite: 10]
-* [cite_start]Neutrale [cite: 10]
+Once a face is detected, its region is passed to the second module. This component employs a **Convolutional Neural Network (CNN)** pre-trained on the FER-2013 dataset. The module, implemented in **Python**, classifies the facial expression into one of seven predefined categories:
+* Angry
+* Disgust
+* Fear
+* Happy
+* Sad
+* Surprise
+* Neutral
 
-## 📊 Dataset Utilizzati
+## 📊 Datasets Used
 
-### Dataset di Addestramento (FER-2013)
+### Training Dataset (FER-2013)
 
-[cite_start]La CNN per il riconoscimento delle emozioni è stata addestrata sul **dataset FER-2013**[cite: 9, 42]. [cite_start]Questo dataset è composto da 35.887 immagini in scala di grigi di dimensioni 48x48 pixel, ciascuna etichettata con una delle sette emozioni[cite: 42].
+The CNN for emotion recognition was trained on the **FER-2013 dataset**. This dataset consists of 35,887 grayscale images of 48x48 pixels, each labeled with one of the seven emotions.
 
-### Dataset di Test
+### Test Dataset
 
-[cite_start]Per la valutazione complessiva del sistema, è stato utilizzato un dataset di test separato contenente 46 immagini[cite: 52]. [cite_start]Ogni immagine è annotata con i riquadri di delimitazione (bounding box) per tutti i volti visibili e le etichette emotive corrispondenti[cite: 53, 54].
+For the overall system evaluation, a separate test dataset containing 46 images was used. Each image is annotated with bounding boxes for all visible faces and the corresponding emotion labels.
 
-## 📈 Metriche di Performance
+## 📈 Performance Metrics
 
-[cite_start]La valutazione del sistema è stata condotta a più livelli per misurare l'efficacia di ciascun componente e del flusso di lavoro completo[cite: 26].
+The system's evaluation was conducted at multiple levels to measure the effectiveness of each component and the complete workflow.
 
-* **Valutazione del Rilevamento dei Volti**:
-    * [cite_start]**Intersection over Union (IoU)**: Per misurare l'accuratezza dei riquadri di delimitazione predetti rispetto a quelli reali[cite: 28].
-    * [cite_start]**Precision e Recall**: Per valutare il trade-off tra rilevamenti corretti, mancati e falsi, basandosi su una soglia IoU (comunemente 0.5)[cite: 29].
+* **Face Detection Evaluation**:
+    * **Intersection over Union (IoU)**: To measure the accuracy of the predicted bounding boxes against the ground truth.
+    * **Precision and Recall**: To evaluate the trade-off between correct, missed, and false detections, based on an IoU threshold (commonly 0.5).
 
-* **Valutazione del Riconoscimento delle Emozioni**:
-    * [cite_start]**Accuracy di Classificazione**: Per misurare la proporzione di emozioni predette correttamente su tutti i volti rilevati[cite: 31].
-    * [cite_start]**Matrice di Confusione**: Per analizzare nel dettaglio le performance della CNN su ciascuna categoria di emozione[cite: 32].
+* **Emotion Recognition Evaluation**:
+    * **Classification Accuracy**: To measure the proportion of correctly predicted emotions across all detected faces.
+    * **Confusion Matrix**: To analyze the detailed performance of the CNN for each emotion category.
 
-* **Valutazione a Livello di Sistema**:
-    * [cite_start]La metrica principale è la **percentuale di volti rilevati con emozioni classificate correttamente**, per valutare le prestazioni end-to-end del sistema[cite: 34].
+* **System-Level Evaluation**:
+    * The primary metric is the **percentage of detected faces with correctly classified emotions**, to assess the end-to-end performance of the system.
 
-## 💡 Applicazioni Potenziali
+## 💡 Potential Applications
 
-[cite_start]Questo sistema può essere applicato in diversi domini[cite: 21]:
-* [cite_start]**Interazione Uomo-Macchina (HCI)**: Creare sistemi più empatici e reattivi in grado di interpretare gli stati emotivi degli utenti[cite: 22].
-* [cite_start]**Analisi Comportamentale**: Fornire insight in contesti come l'istruzione, il retail e la sicurezza, monitorando le risposte emotive delle persone[cite: 23].
-* [cite_start]**Gestione di Fotografie**: Organizzare e taggare automaticamente le immagini in base alle espressioni facciali, semplificando la ricerca in grandi archivi fotografici[cite: 24].
+This system can be applied in various domains:
+* **Human-Computer Interaction (HCI)**: To create more empathetic and responsive systems capable of interpreting users' emotional states.
+* **Behavioral Analysis**: To provide insights in contexts such as education, retail, and security by monitoring people's emotional responses.
+* **Photo Management**: To automatically organize and tag images based on facial expressions, simplifying searches in large photo archives.
 
-## ⚠️ Limitazioni
+## ⚠️ Limitations
 
-Il sistema presenta alcune limitazioni importanti:
-* [cite_start]Funziona **esclusivamente su immagini statiche** e non supporta l'elaborazione in tempo reale[cite: 17].
-* [cite_start]Il riconoscimento delle emozioni dipende interamente dal successo del rilevamento dei volti[cite: 18]. [cite_start]Se l'algoritmo di Viola-Jones non rileva un volto, questo **non verrà analizzato** per l'emozione[cite: 19].
+The system has some important limitations:
+* It works **exclusively on static images** and does not support real-time processing.
+* Emotion recognition is entirely dependent on the success of face detection. If the Viola-Jones algorithm does not detect a face, it **will not be analyzed** for emotion.
 
-## 🚀 Come Eseguire il Progetto
+## 🚀 How to Run the Project
 
-*Per istruzioni dettagliate sull'installazione delle dipendenze e sull'esecuzione del codice, fare riferimento alla documentazione specifica all'interno del repository.*
+*For detailed instructions on installing dependencies and running the code, please refer to the specific documentation within the repository.*
 
-**Prerequisiti (esempio):**
+**Prerequisites (example):**
 * C++ Compiler (GCC, Clang, etc.)
 * OpenCV
 * Python 3.x
 * TensorFlow/Keras
 * NumPy
 
-**Esecuzione (esempio):**
+**Execution (example):**
 ```bash
-# Compila ed esegui il modulo di rilevamento volti
+# Compile and run the face detection module
 g++ -o face_detection main.cpp `pkg-config --cflags --libs opencv4`
 ./face_detection input.jpg
 
-# Esegui lo script di riconoscimento delle emozioni
+# Run the emotion recognition script
 python emotion_recognition.py --image output_faces/face_1.jpg
