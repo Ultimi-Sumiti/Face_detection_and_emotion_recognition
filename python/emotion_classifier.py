@@ -1,11 +1,10 @@
-print("Importing the Python Deep learning library...\n")
-
+print("INFO: Loading Keras modules...")
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 from keras.saving import load_model
 from keras.preprocessing import image
 import numpy as np
+print("INFO: Modules loaded.") 
 
 ### PARAMETERS ###
 CHKP_PATH = "../python/model.keras"
@@ -30,31 +29,29 @@ def class_idx(model, img_path):
 
 
 def main():
-
-    print("Loading the model...\n")
+    print("INFO: Loading pre-trained model...")
     model = load_model(CHKP_PATH)
-    print("Loading DONE")
+    print("INFO: Pre-trained model loaded.")
 
-    # Waiting the signal from image detection to start the recognition phase
-    # Waiting (from C++)
+    # Waiting the signal from image detection.
     with open("cpp_to_py.fifo", "r") as fifo:
         msg = fifo.readline().strip()
         print(f"[Python] Ricevuto da C++: {msg}")
         fifo.flush()
 
     
+    # Load all images in the directory.
     imgs = [
         os.path.join(IMGS_DIR, filename) 
         for filename in os.listdir(IMGS_DIR) if filename != ".gitkeep"
     ]
-    # Send (to C++)
+
+    # Classify each image.
     with open("py_to_cpp.fifo", "w") as fifo:
         for img in imgs:
             idx = class_idx(model, img)
-            fifo.write(f"{idx}\n")
+            fifo.write(f"{CLASSES[idx]}\n")
             fifo.flush()
   
 if __name__ == "__main__":
     main()
-
-  
