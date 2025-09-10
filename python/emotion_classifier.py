@@ -36,7 +36,7 @@ def main():
     print("Loading DONE")
 
     # Waiting the signal from image detection to start the recognition phase
-    # Waiting (C++)
+    # Waiting (from C++)
     with open("cpp_to_py.fifo", "r") as fifo:
         msg = fifo.readline().strip()
         print(f"[Python] Ricevuto da C++: {msg}")
@@ -47,7 +47,7 @@ def main():
         os.path.join(IMGS_DIR, filename) 
         for filename in os.listdir(IMGS_DIR) if filename != ".gitkeep"
     ]
-
+    # Send (to C++)
     with open("py_to_cpp.fifo", "w") as fifo:
         for img in imgs:
             idx = class_idx(model, img)
