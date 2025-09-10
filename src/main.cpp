@@ -6,12 +6,34 @@
 #include <cstdio>  // popen, pclose
 #include <string>
 #include <fstream>
+#include <map>
 
 
 #include "../include/utils.h"
 
 std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
+
+
+std::vector<cv::Scalar> colors = {
+        cv::Scalar(0, 0, 255),     // red
+        cv::Scalar(0, 255, 255),   // yellow
+        cv::Scalar(0,0,0),         //black
+        cv::Scalar(0, 255, 0),     // green
+        cv::Scalar(255, 255, 255),   // white
+        cv::Scalar(255, 0, 0),     // blue
+        cv::Scalar(128, 0, 128),   // purple    
+};
+
+std::map<std::string, cv::Scalar> labelColor = {
+    {"angry", colors[0]},
+    {"disgust", colors[1]},
+    {"fear", colors[2]},
+    {"happy", colors[3]},
+    {"neutral", colors[4]},
+    {"sad", colors[5]},
+    {"surprise", colors[6]}
+};
 
 int main(int argc, char* argv[]) {
 
@@ -126,14 +148,20 @@ void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std
 
     // Draw the box over the detection.
     for (size_t i = 0; i < faces.size(); i++){
+
+        cv::Scalar color = cv::Scalar(255,255,255); // default = white
+         if (labelColor.find(labels[i]) != labelColor.end()) {
+            color = labelColor[labels[i]];
+        }
+
         // Draw the Bounding box
-        cv::rectangle(frame, faces[i], cv::Scalar(255, 0, 255), 4); 
+        cv::rectangle(frame, faces[i], color, 4); 
         // Draw the corrispective label on the BBox
         cv::putText(frame, labels[i],
             cv::Point(faces[i].x, faces[i].y - 5),             // 5 pixels above the top-left
             cv::FONT_HERSHEY_SIMPLEX,
             0.5,                              // font scale
-            cv::Scalar(255, 0, 255),
+            color,
             1,
             cv::LINE_AA);     
     }
