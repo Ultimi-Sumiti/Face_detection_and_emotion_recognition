@@ -4,6 +4,7 @@
 #include <sstream>
 #include <numeric>
 #include "../include/utils.h"
+#include "../include/performance_metrics.h"
 
 
 void parse_command_line(
@@ -34,22 +35,6 @@ void parse_command_line(
 
 
 
-// Function to compute the IOU (intersection over union) between 2 given boxes.
-float compute_IOU(cv::Rect& box1, cv::Rect& box2){
-    // Define the variable to store the areas of intersection, union and the respective IoU.
-    double areas_int;
-    double areas_union;
-
-    // Compute intersection union of boxes. 
-    cv::Rect intersect = box1 & box2;
-    areas_int = intersect.area();
-    areas_union = box1.area() + box2.area() - areas_int;
-
-    // Compute and return the IoU.
-    float IoU = areas_int / areas_union;
-    return IoU;
-}
-
 
 // Function to parse the labels of the positions and emotion from the given textual file.
 std::vector<std::vector<float>> parse_labels(const std::string& filename){
@@ -68,6 +53,7 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename){
             current_face.push_back(std::stof(word));
             count++;
         }
+
         if(!current_face.empty()){
             faces.push_back(current_face);
             current_face.clear();
@@ -94,22 +80,6 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
         rects_label.push_back(cv::Rect(x, y, width, height));
     }
     return rects_label;
-}
-
-std::vector<float> get_label_IOUs(std::string& filename, std::vector<cv::Rect>& boxes, int img_width, int img_height){
-    std::vector<cv::Rect> rects_label = compute_rectangles(filename, img_width, img_height);
-    float current_IoU;
-    std::vector<float> IOUs(boxes.size(), 0.0f); 
-
-    for(int i = 0; i < rects_label.size(); i++){
-        for(int j = 0; j < boxes.size(); j++){
-            current_IoU = compute_IOU(rects_label[i], boxes[j]);
-            if(current_IoU > IOUs[i]){
-                IOUs[i] = current_IoU;
-            }
-        }
-    }
-    return IOUs;
 }
 
 void printRectDetails(const std::vector<cv::Rect>& rects) {
@@ -158,27 +128,15 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
     return stddev.val[0] * stddev.val[0];
 }
 
-float compute_MIOU(std::vector<float>& IOUs){
-    // Handle the edge case of an empty vector to prevent division by zero.
-    if (IOUs.empty()) {
-        return 0.0f;
-    }
-
-    // Calculate the sum of all elements in the vector.
-    //    std::accumulate(begin, end, initial_value)
-    float total_iou = std::accumulate(IOUs.begin(), IOUs.end(), 0.0f);
-
-    // Divide the sum by the number of elements to get the mean.
-    return total_iou / IOUs.size();
-}
-
 
 // Detection function using the ViolaJones algorithm.
 std::vector<cv::Rect> vj_detect(std::string& filename){
     std::string image_path = image_dir + filename + image_extension;
     std::string label_path = label_dir + filename + label_extension;
 
+    // Storing the image and computing the label rectangles from file values.
     cv::Mat frame = cv::imread(image_path);
+    std::vector<cv::Rect> label_rects = compute_rectangles(label_path, frame.cols, frame.rows);
 
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
@@ -203,7 +161,7 @@ std::vector<cv::Rect> vj_detect(std::string& filename){
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
     std::vector<int> rejectLevels;   
-    std::vector<double> levelWeights;   // This will hold the confidence scores
+    std::vector<double> levelWeights;   // This will hold the confidence scores.
     std::vector<double> blurScore;
 
 
@@ -237,9 +195,9 @@ std::vector<cv::Rect> vj_detect(std::string& filename){
 
 
         std::cout << "Found " << faces.size() << " faces." << std::endl;
-        // Loop through each detected face
+        // Loop through each detected face.
         for(int j = 0; j < faces.size(); j++){
-            // Print the confidence score (level weight) for the corresponding face
+            // Print the confidence score for the corresponding face.
             score = calculateBlurScore(frame, faces[j]) * faces[j].area();
             std::cout << "Face " << j
                 << " -> Score: " << score <<std::endl;
@@ -252,18 +210,26 @@ std::vector<cv::Rect> vj_detect(std::string& filename){
         if(faces.size() > 0){
             std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
         }
+        // For each classier we redifine metrics with new faces detections.
+        PerformanceMetrics metrics = PerformanceMetrics(label_rects, filtered_faces);
 
-        IOUs = get_label_IOUs(label_path, filtered_faces, frame.cols, frame.rows);
+        // Computing the intersection over union for all detections.
+        IOUs = metrics.get_label_IOUs();
         for(int k = 0; k < IOUs.size(); k++){
             std::cout<<"Rect "<<k<<" IOUs: "<<IOUs[k]<<std::endl;
         }
-        curr_MIOU = compute_MIOU(IOUs);
+
+        // Computing the current mean intersection over union.
+        curr_MIOU = metrics.compute_MIOU();
+
+        // Storing new best performance if current classifier perfomance are the best.
         if (curr_MIOU > best_MIOU){
             best_index = i;
             best_MIOU = curr_MIOU;
             best_detections = filtered_faces;
         }
 
+        // Removing the previouse detections for the next classifier.
         filtered_faces.clear();
     }
 
@@ -275,14 +241,12 @@ std::vector<cv::Rect> vj_detect(std::string& filename){
     std::cout<<"Detected rectangles position and size: "<<std::endl;
     printRectDetails(best_detections);
     std::cout<<std::endl;
-    std::vector<cv::Rect> label_rects = compute_rectangles(label_path, frame.cols, frame.rows);
     std::cout<<"Label rectangles position and size: "<<std::endl;
     printRectDetails(label_rects);
 
     if(best_detections.size() == 0){
         exit(1);
     }
-    get_label_IOUs(label_path, best_detections, frame.cols, frame.rows);
     
     /*
     // Folder path in which will be saved the images.

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstdio>  // popen, pclose
 #include "../include/utils.h"
+#include "../include/performance_metrics.h"
 
 
 int main(void){
