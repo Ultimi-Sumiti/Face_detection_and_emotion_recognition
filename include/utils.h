@@ -10,15 +10,11 @@
 
 
 const std::vector<std::string> file_paths= {
-"../classifiers/haarcascade_eye_tree_eyeglasses.xml",
-"../classifiers/haarcascade_eye.xml",
 "../classifiers/haarcascade_frontalface_alt_tree.xml",
 "../classifiers/haarcascade_frontalface_alt.xml",
 "../classifiers/haarcascade_frontalface_alt2.xml",
 "../classifiers/haarcascade_frontalface_default.xml",
-"../classifiers/haarcascade_lefteye_2splits.xml",
 "../classifiers/haarcascade_profileface.xml",
-"../classifiers/haarcascade_righteye_2splits.xml",
 };
 
 const std::string image_dir = "../dataset_detection/images/";
