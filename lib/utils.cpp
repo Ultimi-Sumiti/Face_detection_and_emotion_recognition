@@ -164,7 +164,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     std::vector<cv::Rect> filtered_faces; 
     std::vector<cv::Rect> best_detections; 
     int min_score = 1000000;
-    int min_area = frame.rows * frame.cols /100;
+    int min_area = frame.rows * frame.cols /150;
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;
@@ -182,7 +182,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             faces,
             rejectLevels,
             levelWeights,
-            1.05, // scaleFactor
+            1.1, // scaleFactor
             5,   // minNeighbors
             0,   // flags
             cv::Size(70, 70), // minSize
