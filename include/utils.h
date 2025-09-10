@@ -46,5 +46,5 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
 std::vector<std::vector<float>> parse_labels(const std::string& filename);
 
 // Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> face_detect(std::string& filename);
+std::vector<cv::Rect> face_detect(cv::Mat& frame);
 #endif

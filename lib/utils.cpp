@@ -130,13 +130,7 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
 
 
 // Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> face_detect(std::string& filename){
-    std::string image_path = image_dir + filename + image_extension;
-    std::string label_path = label_dir + filename + label_extension;
-
-    // Storing the image and computing the label rectangles from file values.
-    cv::Mat frame = cv::imread(image_path);
-    std::vector<cv::Rect> label_rects = compute_rectangles(label_path, frame.cols, frame.rows);
+std::vector<cv::Rect> face_detect(cv::Mat& frame){
 
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
@@ -172,9 +166,7 @@ std::vector<cv::Rect> face_detect(std::string& filename){
     int min_score = 1000000;
     int best_score = 0;
     int best_index = 0;
-    std::vector<float> IOUs (f_cascades.size());
-    float best_MIOU = 0.0f;
-    float curr_MIOU = 0.0f;
+    int actual_score = 0;
 
     // Checking all possible faces cascades. 
     for(int i = 0; i < f_cascades.size(); i++){
@@ -204,29 +196,20 @@ std::vector<cv::Rect> face_detect(std::string& filename){
             // Here we filter the detection: if they're both not defined and small we filter out.
             if(score > min_score){
                 filtered_faces.push_back(faces[j]);
+                actual_score += score;
             }
         }
         
         if(faces.size() > 0){
             std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
         }
-        // For each classier we redifine metrics with new faces detections.
-        PerformanceMetrics metrics = PerformanceMetrics(label_rects, filtered_faces);
 
-        // Computing the intersection over union for all detections.
-        IOUs = metrics.get_label_IOUs();
-        for(int k = 0; k < IOUs.size(); k++){
-            std::cout<<"Rect "<<k<<" IOUs: "<<IOUs[k]<<std::endl;
-        }
-
-        // Computing the current mean intersection over union.
-        curr_MIOU = metrics.compute_MIOU();
 
         // Storing new best performance if current classifier perfomance are the best.
-        if (curr_MIOU > best_MIOU){
-            best_index = i;
-            best_MIOU = curr_MIOU;
+        if (actual_score > best_score){
             best_detections = filtered_faces;
+            best_score = actual_score;
+            best_index = i;
         }
 
         // Removing the previouse detections for the next classifier.
@@ -234,17 +217,16 @@ std::vector<cv::Rect> face_detect(std::string& filename){
     }
 
     std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
-    std::cout<<"  with MIOU: "<<best_MIOU<<std::endl<<std::endl;
+    std::cout<<"  with score: "<<best_score<<std::endl<<std::endl;
 
     final_classifier = f_cascades[best_index];
 
     std::cout<<"Detected rectangles position and size: "<<std::endl;
     printRectDetails(best_detections);
     std::cout<<std::endl;
-    std::cout<<"Label rectangles position and size: "<<std::endl;
-    printRectDetails(label_rects);
 
     if(best_detections.size() == 0){
+        std::cout<<"Error: no detection!";
         exit(1);
     }
     
@@ -264,20 +246,16 @@ std::vector<cv::Rect> face_detect(std::string& filename){
     }*/
 
     // Draw the box over the detection.
-    for (int i = 0; i < best_detections.size(); i++){
+    /*for (int i = 0; i < best_detections.size(); i++){
         cv::rectangle(frame, best_detections[i], cv::Scalar(255, 0, 255), 4);      
-    }
-    // Draw the label box.
-    for (int i = 0; i < label_rects.size(); i++){
-        cv::rectangle(frame, label_rects[i], cv::Scalar(255, 255, 0), 4);      
-    }
+    }*/
     
     // Show the images detected.
-
+    /*
     double scale = 0.5;
     cv::resize(frame, frame, cv::Size(), scale, scale);
     cv::imshow("Window", frame);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 
     /*
     for (size_t i = 0; i < cropped_imgs.size(); i++){

@@ -60,7 +60,23 @@ int main(int argc, char* argv[]) {
 
     cv::Mat img = cv::imread(input_path);
     // Detect and save the faces in a specific folder.
-    std::vector<cv::Rect> faces = vj_detect(img, face_cascade);
+    std::vector<cv::Rect> faces = face_detect(img);
+
+    std::cout<<faces.size()<<std::endl;
+
+    // Folder path in which will be saved the images.
+    std::string folder_path_cropped_imgs = "../cropped_imgs/";
+    // Vector of cropped images and vector of bounding boxes.
+    std::vector<cv::Mat>  cropped_imgs; 
+
+    for (size_t i = 0; i < faces.size(); i++){
+
+        // Cropping the detected faces.
+        cv::Mat faceROI = img(faces[i]);
+        cropped_imgs.push_back(faceROI.clone());
+        // Saving the cropped images.
+        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
+    }
     
     // ------------------------------------ EMOTION RECOGNITION ------------------------------------
     // Signal (to Python)    
@@ -76,7 +92,6 @@ int main(int argc, char* argv[]) {
     std::string line;
     std::vector<std::string> labels;
 
-
     // Read all the output stream
     while (std::getline(from_server, line)) {
         
@@ -84,7 +99,7 @@ int main(int argc, char* argv[]) {
         labels.push_back(line);
     } 
     from_server.close();
-
+    
     draw_bbox(img, faces, labels);
     cv::imshow("Window", img);
     cv::waitKey(0);
@@ -104,19 +119,6 @@ std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade)
     std::vector<cv::Rect> faces;
     f_cascade.detectMultiScale(frame_gray, faces);
 
-    // Folder path in which will be saved the images.
-    std::string folder_path_cropped_imgs = "../cropped_imgs/";
-    // Vector of cropped images and vector of bounding boxes.
-    std::vector<cv::Mat>  cropped_imgs; 
-
-    for (size_t i = 0; i < faces.size(); i++){
-
-        // Cropping the detected faces.
-        cv::Mat faceROI = frame(faces[i]);
-        cropped_imgs.push_back(faceROI.clone());
-        // Saving the cropped images.
-        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
-    }
     return faces;   
 }
 
