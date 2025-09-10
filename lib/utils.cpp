@@ -167,6 +167,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;
+    int best_count = 0;
 
     // Checking all possible faces cascades. 
     for(int i = 0; i < f_cascades.size(); i++){
@@ -197,6 +198,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             if(score > min_score){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
+                count++;
             }
         }
         
@@ -214,6 +216,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
 
         // Removing the previouse detections for the next classifier.
         filtered_faces.clear();
+        actual_score = 0;
     }
 
     std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
