@@ -42,9 +42,12 @@ int main(int argc, char* argv[]) {
     cv::Mat img = cv::imread(input_path);
     // Detect and save the faces in a specific folder.
     vj_detect(img, face_cascade);
+    
 
+    // ----- EMOTION RECOGNITION ----
     // Call the python pipeline to classify the faces
-    FILE* pipe = popen("python3 ../src/sender.py", "r"); // "r" to read
+    //FILE* pipe = popen("python3 ../src/sender.py", "r"); // "r" to read
+    FILE* pipe = popen("python3 ../python/emotion_classifier.py", "r"); // "r" to read
     if (!pipe) {
         std::cerr << "Error in opening the pipe" << std::endl;
         return -1;

@@ -1,22 +1,38 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-from keras.saving import load_model
-from keras.preprocessing import image
-import numpy as np
+os.environ["KERAS_BACKEND"] = "torch"
+import keras
 
-### PARAMETERS ###
-CHKP_PATH = "./model.keras"
-IMG_SIZE = 224
-CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
-IMGS_DIR = "../cropped_imgs/"
+from keras.applications import VGG16
+from keras import Model
+from keras.layers import Dense, GlobalAveragePooling2D
+from keras.datasets import cifar10
+from keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+import matplotlib.pyplot as plt
+
+NUM_CLASSES = 7
+BATCH_SIZE = 64
+
+TRAIN_DIR = "../dataset_classification/train/"
+TEST_DIR = "../dataset_classification/test/"
+IMG_SHAPE = (48, 48)
 
 
-def class_idx(model, img_path):
-    # Load and transform image.
-    img = image.load_img(img_path, target_size=(IMG_SIZE, IMG_SIZE))
-    img = image.img_to_array(img)
-    img = np.expand_dims(img, axis=0)
+def create_dataset():
+    # Define the two generators (train and test).
+    train_gen = ImageDataGenerator(
+        rescale=1./255,
+        featurewise_center=False,
+        featurewise_std_normalization=False,
+        rotation_range=10,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        zoom_range=0.1,
+        horizontal_flip=True
+    )
+    test_gen = ImageDataGenerator(rescale = 1./255)
 
     # Predict.
     predictions = model.predict(img, verbose=0)
