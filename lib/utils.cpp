@@ -168,6 +168,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     int best_index = 0;
     int actual_score = 0;
     int best_count = 0;
+    int min_area = frame.rows * frame.cols /100 ;
 
     // Checking all possible faces cascades. 
     for(int i = 0; i < f_cascades.size(); i++){
@@ -195,7 +196,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             std::cout << "Face " << j
                 << " -> Score: " << score <<std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if(score > min_score){
+            if(score > min_score && faces[i].area() > min_area){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
