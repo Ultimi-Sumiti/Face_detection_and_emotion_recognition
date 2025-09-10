@@ -164,7 +164,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     std::vector<cv::Rect> filtered_faces; 
     std::vector<cv::Rect> best_detections; 
     int min_score = 1000000;
-    int min_area = frame.rows * frame.cols /150;
+    int min_area = frame.rows * frame.cols /100;
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;
@@ -195,12 +195,12 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
         // Loop through each detected face.
         for(int j = 0; j < faces.size(); j++){
             // Print the confidence score for the corresponding face.
-
-            score = calculateBlurScore(frame, faces[j]) * faces[j].area();
+            blur_score = calculateBlurScore(frame, faces[j]);
+            score =  blur_score * faces[j].area();
             std::cout << "Face " << j
                 << " -> Score: " << score <<std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if(score > min_score && faces[i].area() > min_area){
+            if((score > min_score || blur_score > avg_blur) && faces[i].area() > min_area){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
