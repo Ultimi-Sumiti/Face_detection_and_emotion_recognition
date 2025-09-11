@@ -10,12 +10,14 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h> 
+#include <thread>
 
 #include "../include/utils.h"
 
 std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
 void fifo_creation(const char* fifo_name);
+void recognition_pipeline_call();
 
 std::vector<cv::Scalar> colors = {
         cv::Scalar(0, 0, 255),     // red
@@ -40,8 +42,7 @@ std::map<std::string, cv::Scalar> label_color = {
 int main(int argc, char* argv[]) {
 
     // Call the python pipeline to classify the faces
-    int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null &");
-    // TODO gestione chiamata in background del file python (stiamo usando parallelismo)
+    std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
 
     // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
     fifo_creation("cpp_to_py.fifo");
@@ -79,7 +80,6 @@ int main(int argc, char* argv[]) {
     cv::Mat img = cv::imread(input_path);
     // Detect and save the faces in a specific folder.
     std::vector<cv::Rect> faces = vj_detect(img, face_cascade);
-
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
     // Vector of cropped images and vector of bounding boxes.
@@ -94,8 +94,17 @@ int main(int argc, char* argv[]) {
     }
     
     // ------------------------------------ EMOTION RECOGNITION ------------------------------------
-    // Signal (to Python)    
+    // Signal (to Python)
+    std::cout<<"Prima di python\n";   
     std::ofstream to_server("cpp_to_py.fifo");
+    if(faces.empty()){
+        std::cout <<"No faces are detected, the program terminates\n";
+        // Singal (to Python) for closing its pipeline 
+        to_server << "exit" << std::endl; 
+        // Wait the thread ends
+        emotion_rec_thread.join();
+        return 1;
+    }
     to_server << "Required Emotion recognition" << std::endl;
     to_server.close();
 
@@ -119,6 +128,9 @@ int main(int argc, char* argv[]) {
     namedWindow("Window", cv::WINDOW_NORMAL);
     cv::imshow("Window", img);
     cv::waitKey(0);
+
+    // Wait the thread ends
+    emotion_rec_thread.join();
     return 0;
 }
 
@@ -179,6 +191,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    void recognition_pipeline_call(){
+        int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
+
+    }
 
 
 // // Show the images detected.

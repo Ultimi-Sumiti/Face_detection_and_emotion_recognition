@@ -36,10 +36,12 @@ def main():
     # Waiting the signal from image detection.
     with open("cpp_to_py.fifo", "r") as fifo:
         msg = fifo.readline().strip()
-        print(f"[Python] Ricevuto da C++: {msg}")
+        print(f"[Python] Recived from C++: {msg}")
         fifo.flush()
-
-    
+        # If nothing is detected the program terminates
+        if msg == "exit":
+            return -1
+            
     # Load all images in the directory.
     imgs = [
         os.path.join(IMGS_DIR, filename) 
