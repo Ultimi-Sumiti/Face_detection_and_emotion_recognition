@@ -4,6 +4,7 @@
 #include <sstream>
 #include <numeric>
 #include <sys/stat.h>
+#include <filesystem>
 
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"

@@ -8,7 +8,8 @@
 #include <fstream>
 #include <errno.h>
 #include <unistd.h> 
-#include <thread>
+#include <thread> 
+#include <filesystem>
 //#include <Python.h>
 
 #include "../include/utils.h"
@@ -32,6 +33,13 @@ const std::vector<std::string> classifiers_paths = {
         "../classifiers/haarcascade_profileface.xml",
 };
 
+const std::string image_dir = "images";
+const std::string label_dir = "labels";
+const std::string image_extension = ".jpg";
+const std::string label_extension = ".txt";
+const std::string detection_dir = "detections";
+
+
 int main(int argc, char* argv[]) {
 
     // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
@@ -45,11 +53,7 @@ int main(int argc, char* argv[]) {
     
     std::vector<std::string> complete_paths;
     std::vector<std::string> label_paths;
-
-    const std::string image_dir = "images";
-    const std::string label_dir = "labels";
-    const std::string image_extension = ".jpg";
-    const std::string label_extension = ".txt";
+    std::string detection_path = input_path + "/" + detection_dir + "/";
 
 
     if (input_path.empty()) {
@@ -119,6 +123,7 @@ int main(int argc, char* argv[]) {
     std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
 
     // Start processing all images.
+    int count = 0;
     for(const auto& path : complete_paths){
 
         // Processing the current image
@@ -169,12 +174,16 @@ int main(int argc, char* argv[]) {
         from_server.close();
         
         // Draw the detection with the labels on current image.
-        /*
         detector.draw_bbox(img, faces, labels);
-        namedWindow("Window", cv::WINDOW_NORMAL);
-        cv::imshow("Window", img);
-        cv::waitKey(0);
-        */
+
+        std::string full_detection_path = detection_path + "image_" + std::to_string(count) + image_extension;
+        std::cout<<full_detection_path<<std::endl;
+        if(cv::imwrite( full_detection_path, img)){
+            std::cout<<"Image: "<<"image_" + std::to_string(count)<<" saved."<<std::endl;
+        }else{
+            std::cout<<"Image: "<<"image_" + std::to_string(count)<<" not saved."<<std::endl;
+        }
+        count++;
         
         //  ------------------------------------ PERFORMANCE METRICS ------------------------------------ 
         // Performance metrics, if necessary.
