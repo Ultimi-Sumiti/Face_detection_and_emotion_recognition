@@ -6,7 +6,6 @@
 #include <cstdio>  // popen, pclose
 #include <string>
 #include <fstream>
-#include <map>
 #include <errno.h>
 #include <sys/stat.h>
 #include <unistd.h> 
@@ -15,35 +14,14 @@
 
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
+#include "face_detector.h"
 
 
 namespace fs = std::filesystem;
 
-std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
-void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
-void crop_images(cv::Mat img , std::vector<cv::Rect> faces);
 void fifo_creation(const char* fifo_name);
 void recognition_pipeline_call();
 
-std::vector<cv::Scalar> colors = {
-        cv::Scalar(0, 0, 255),     // red
-        cv::Scalar(0, 255, 255),   // yellow
-        cv::Scalar(0,0,0),         // black
-        cv::Scalar(0, 255, 0),     // green
-        cv::Scalar(255, 255, 255), // white
-        cv::Scalar(255, 0, 0),     // blue
-        cv::Scalar(128, 0, 128),   // purple    
-};
-
-std::map<std::string, cv::Scalar> label_color = {
-    {"angry", colors[0]},
-    {"disgust", colors[1]},
-    {"fear", colors[2]},
-    {"happy", colors[3]},
-    {"neutral", colors[4]},
-    {"sad", colors[5]},
-    {"surprise", colors[6]}
-};
 
 int main(int argc, char* argv[]) {
 
@@ -61,6 +39,12 @@ int main(int argc, char* argv[]) {
     
     std::vector<std::string> complete_paths;
     std::vector<std::string> label_paths;
+
+    const std::string image_dir = "images";
+    const std::string label_dir = "labels";
+    const std::string image_extension = ".jpg";
+    const std::string label_extension = ".txt";
+
 
     if (input_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
@@ -112,18 +96,31 @@ int main(int argc, char* argv[]) {
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
-    
-    /*cv::CascadeClassifier face_cascade;
-    
-    // Load the cascades.
-    if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
-        std::cout << "Error loading face cascade\n";
-        emotion_rec_thread.join();
-        return -1;
-    };*/
-    std::vector<cv::CascadeClassifier> face_cascades = get_classifier(classifiers_paths);
-    std::vector<std::string> cropped_paths;
+
+    try
+    {
+        // ###TODO Gestire eccezione in caso di carico errato dei cascades
+    }
+    catch(const std::runtime_error& e)
+    {
+        std::cerr << "Exception caught: " << e.what() << std::endl;
+        return 1;
+    }
+
+    const std::vector<std::string> classifiers_paths = {
+        "../classifiers/haarcascade_frontalface_alt_tree.xml",
+        "../classifiers/haarcascade_frontalface_alt.xml",
+        "../classifiers/haarcascade_frontalface_alt2.xml",
+        "../classifiers/haarcascade_frontalface_default.xml",
+        "../classifiers/haarcascade_profileface.xml",
+    };
+    // Define the FaceDetector passing it the path of the classifier to load.
+    FaceDetector detector(classifiers_paths);
+
+    // Start processing all images.
     for(const auto& path : complete_paths){
+
+        // Processing the current image
         cv::Mat img = cv::imread(path);
         std::cout<<std::endl<< "Analyzing: "<<path;
 
@@ -133,38 +130,28 @@ int main(int argc, char* argv[]) {
         }
         
         // Detect and save the faces in a specific folder.
-        std::vector<cv::Rect> faces = face_detect(img, face_cascades);
+        std::vector<cv::Rect> faces = detector.face_detect(img);
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
-        
-        // Folder path in which will be saved the images.
-        std::string folder_path_cropped_imgs = "../cropped_imgs/";
-        // Vector of cropped images and vector of bounding boxes.
-        std::vector<cv::Mat>  cropped_imgs; 
+        // Crop images and save it in a vector.
+        std::vector<std::string> cropped_paths = crop_images(img, faces);
 
-        for (size_t i = 0; i < faces.size(); i++){
-            // Cropping the detected faces.
-            cv::Mat faceROI = img(faces[i]);
-            cropped_imgs.push_back(faceROI.clone());
-            // Saving the cropped images.
-            cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]); 
-            cropped_paths.push_back(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png");   
-        }
         
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
         // Signal (to Python)
         std::cout<<"Prima di python\n";   
         std::ofstream to_server("cpp_to_py.fifo");
+        
         if(faces.empty()){
             std::cout <<"No faces are detected, the program terminates\n";
             // Singal (to Python) for closing its pipeline 
             to_server << "continue" << std::endl; 
-            // Go to next iteration.
+            // Go to next iteration (next image).
             continue;
         }
         to_server << "Required Emotion recognition" << std::endl;
         to_server.close();
 
-        // **** Python program to detect *****
+        // **** Python program is currently detecting *****
 
         // Waiting (from Python)
         std::cout << "In attesa della risposta da Python...\n";
@@ -180,6 +167,15 @@ int main(int argc, char* argv[]) {
         } 
         from_server.close();
         
+        // Draw the detection with the labels on current image.
+        /*
+        detector.draw_bbox(img, faces, labels);
+        namedWindow("Window", cv::WINDOW_NORMAL);
+        cv::imshow("Window", img);
+        cv::waitKey(0);
+        */
+        
+        //  ------------------------------------ PERFORMANCE METRICS ------------------------------------ 
         // Performance metrics, if necessary.
         if (!file_name.empty()) {
             std::vector<cv::Rect> label_rect = compute_rectangles(label_paths.back(), img.cols, img.rows);
@@ -187,22 +183,9 @@ int main(int argc, char* argv[]) {
             pm.print_metrics();
         }
 
-        /*draw_bbox(img, faces, labels);
-        namedWindow("Window", cv::WINDOW_NORMAL);
-        cv::imshow("Window", img);
-        cv::waitKey(0);*/
-
         // Remove cropped
-        for(const auto& cropped : cropped_paths){
-            try {
-                // The remove function returns true if a file was deleted, false otherwise
-                fs::remove(cropped);
-            } catch (const fs::filesystem_error& e) {
-                // This catch block handles errors like permission issues
-                std::cerr << "Error deleting file: " << e.what() << std::endl;
-                return 1;
-            }
-        }
+        remove_images(cropped_paths); 
+
     }
 
     // Sending exit message to python.
@@ -215,46 +198,11 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-    void crop_images(cv::Mat img , std::vector<cv::Rect> faces){
-    // Folder path in which will be saved the images.
-    std::string folder_path_cropped_imgs = "../cropped_imgs/";
-    // Vector of cropped images and vector of bounding boxes.
-    std::vector<cv::Mat>  cropped_imgs;
-
-    for (size_t i = 0; i < faces.size(); i++){
-        // Cropping the detected faces.
-        cv::Mat faceROI = img(faces[i]);
-        cropped_imgs.push_back(faceROI.clone());
-        // Saving the cropped images.
-        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i) + ".png", cropped_imgs[i]);
-    }
-}
 
 
-    void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels){
 
-        // Draw the box over the detection.
-        for (size_t i = 0; i < faces.size(); i++){
 
-            cv::Scalar color = cv::Scalar(255,255,255); // default = white
-            if (label_color.find(labels[i]) != label_color.end()) {
-                color = label_color[labels[i]];
-            }
-
-            // Draw the Bounding box
-            cv::rectangle(frame, faces[i], color, 4); 
-            // Draw the corrispective label on the BBox
-            cv::putText(frame, labels[i],
-                cv::Point(faces[i].x, faces[i].y - 5), // 5 pixels above the top-left
-                cv::FONT_HERSHEY_SIMPLEX,
-                0.5,                              // font scale
-                color,
-                1,
-                cv::LINE_AA);     
-        }
-    }
     
-
     // Function to check if a filesystem file .fifo is already present otherwise it create it.
     void fifo_creation(const char* fifo_name) {
 
@@ -275,33 +223,3 @@ int main(int argc, char* argv[]) {
         int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
 
     }
-
-// Detection function using the ViolaJones algorithm.
-    std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
-
-        cv::Mat frame_gray;
-        // Convert into GRAY the frame passed.
-        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-        // Histogram equalization.
-        cv::equalizeHist(frame_gray, frame_gray); 
-
-        // Detect faces on the frame in gray scale.
-        std::vector<cv::Rect> faces;
-        f_cascade.detectMultiScale(frame_gray, faces);
-
-        return faces;   
-
-    }
-
-// // Show the images detected.
-//    cv::imshow("Window", frame);
-//    cv::waitKey(0);
-//
-//    for (size_t i = 0; i < cropped_imgs.size(); i++){
-//
-//        std::string window_name = "Window " + std::to_string(i);
-//        cv::imshow(window_name, cropped_imgs[i]);
-//    }
-//
-//    cv::waitKey(0);
-
