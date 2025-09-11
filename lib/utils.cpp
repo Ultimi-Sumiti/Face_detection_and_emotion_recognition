@@ -137,11 +137,6 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     // Histogram equalization.
     cv::equalizeHist(frame_gray, frame_gray); 
 
-    // Plotting the image equalized.
-    cv::namedWindow("Window",cv::WINDOW_NORMAL);
-    cv::imshow("Window", frame);
-    cv::waitKey(0);
-
     // Load the cascades.
     std::vector<cv::CascadeClassifier> f_cascades (file_paths.size());
     for(int i = 0; i < file_paths.size(); i++ ){

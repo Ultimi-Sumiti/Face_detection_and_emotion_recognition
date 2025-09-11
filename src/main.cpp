@@ -59,14 +59,17 @@ int main(int argc, char* argv[]) {
 
     if (input_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
-        return 1;
+        emotion_rec_thread.join();
+        return -1;
     }
-    if (file_name.empty())
+    if (file_name.empty()){
         std::cerr << "Info: file name not provided, IoU will not be computed.\n";
+        emotion_rec_thread.join();
+        return -1;
+    }
     // Print args found.
     std::cout << "INPUT FILE PATH " << input_path << "\n";
-    if (!file_name.empty())
-        std::cout << "FILE NAME " << file_name << "\n";
+    std::cout << "FILE NAME " << file_name << "\n";
 
     
     std::string complete_path = input_path + "/" + image_dir + "/"+ file_name + image_extension;
@@ -76,21 +79,24 @@ int main(int argc, char* argv[]) {
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     cv::CascadeClassifier face_cascade;
-
+    
     // Load the cascades.
     if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
         std::cout << "Error loading face cascade\n";
+        emotion_rec_thread.join();
         return -1;
     };
-
+    
     cv::Mat img = cv::imread(complete_path);
     if(img.empty()){
         std::cerr<<"Error: cannot open image!"<<std::endl;
+        emotion_rec_thread.join();
         return -1;
     }
+    
     // Detect and save the faces in a specific folder.
     std::vector<cv::Rect> faces = face_detect(img);
-
+    
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
     // Vector of cropped images and vector of bounding boxes.
@@ -114,7 +120,7 @@ int main(int argc, char* argv[]) {
         to_server << "exit" << std::endl; 
         // Wait the thread ends
         emotion_rec_thread.join();
-        return 1;
+        return -1;
     }
     to_server << "Required Emotion recognition" << std::endl;
     to_server.close();
@@ -168,7 +174,7 @@ int main(int argc, char* argv[]) {
             cv::rectangle(frame, faces[i], color, 4); 
             // Draw the corrispective label on the BBox
             cv::putText(frame, labels[i],
-                cv::Point(faces[i].x, faces[i].y - 5),             // 5 pixels above the top-left
+                cv::Point(faces[i].x, faces[i].y - 5), // 5 pixels above the top-left
                 cv::FONT_HERSHEY_SIMPLEX,
                 0.5,                              // font scale
                 color,
@@ -176,22 +182,7 @@ int main(int argc, char* argv[]) {
                 cv::LINE_AA);     
         }
     }
-    // Detection function using the ViolaJones algorithm.
-    std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
-
-        cv::Mat frame_gray;
-        // Convert into GRAY the frame passed.
-        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-        // Histogram equalization.
-        cv::equalizeHist(frame_gray, frame_gray); 
-
-        // Detect faces on the frame in gray scale.
-        std::vector<cv::Rect> faces;
-        f_cascade.detectMultiScale(frame_gray, faces);
-
-        return faces;   
-
-    }
+    
 
     // Function to check if a filesystem file .fifo is already present otherwise it create it.
     void fifo_creation(const char* fifo_name) {
@@ -214,6 +205,22 @@ int main(int argc, char* argv[]) {
 
     }
 
+// Detection function using the ViolaJones algorithm.
+    std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
+
+        cv::Mat frame_gray;
+        // Convert into GRAY the frame passed.
+        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
+        // Histogram equalization.
+        cv::equalizeHist(frame_gray, frame_gray); 
+
+        // Detect faces on the frame in gray scale.
+        std::vector<cv::Rect> faces;
+        f_cascade.detectMultiScale(frame_gray, faces);
+
+        return faces;   
+
+    }
 
 // // Show the images detected.
 //    cv::imshow("Window", frame);
