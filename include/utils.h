@@ -17,17 +17,24 @@ const std::vector<std::string> classifiers_paths= {
 "../classifiers/haarcascade_profileface.xml",
 };
 
-const std::string image_dir = "images";
+//const std::string image_dir = "images_480";
 
-const std::string label_dir = "labels";
+//const std::string label_dir = "labels";
 
-const std::string image_extension = ".jpg";
+//const std::string image_extension = ".jpg";
 
-const std::string label_extension = ".txt";
+//const std::string label_extension = ".txt";
 
 // Function used to parse the command line arguments.
-void parse_command_line(int argc, char* argv[], std::string& input_path, 
-        std::string& label_path);
+void parse_command_line(
+        int argc,
+        char* argv[],
+        std::string& imgs_dir_path, 
+        std::string& label_dir_path
+);
+
+// Function used to store all the file names inside 'dir_path' in 'filenames'.
+std::vector<std::string> get_all_filenames(const std::string& dir_path); 
 
 // Function used to print the details regarding a given vector of rectangles.
 void printRectDetails(const std::vector<cv::Rect>& rects);

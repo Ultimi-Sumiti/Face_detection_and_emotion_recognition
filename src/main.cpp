@@ -49,69 +49,67 @@ int main(int argc, char* argv[]) {
     // Call the python pipeline to classify the faces
     std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
 
-    // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
+    // Create fifo files for Inter Process Communication (CPP, Python).
     fifo_creation("cpp_to_py.fifo");
     fifo_creation("py_to_cpp.fifo");
 
-    // For per ciclare su tutte le immagini di test
-    // con un flag che se attivato, non cicla su tutte , prende solo un immagine d auna cartella separata
-
-
-    // Parse command line.
-    std::string input_path{}, file_name{};
-    parse_command_line(argc, argv, input_path, file_name);
+    // Parse command line, get image directory and (optinally) labels directory.
+    std::string imgs_dir_path{}, labels_dir_path{};
+    parse_command_line(argc, argv, imgs_dir_path, labels_dir_path);
         
-    
-    std::vector<std::string> complete_paths;
-    std::vector<std::string> label_paths;
-
-    if (input_path.empty()) {
+    if (imgs_dir_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
         emotion_rec_thread.join();
-        return -1;
+        return EXIT_FAILURE;
     }
+    
+    // Retreive all filenames inside the directories.
+    std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
+    std::vector<std::string> labels_paths{};
+    if (!labels_dir_path.empty())
+        labels_paths = get_all_filenames(labels_dir_path);
 
-    if (!file_name.empty()){
-        complete_paths.push_back(input_path + "/" + image_dir + "/"+ file_name + image_extension);
-        label_paths.push_back(input_path + "/" + label_dir + "/"+ file_name + label_extension);
+    //if (!file_name.empty()){
+    //    complete_paths.push_back(imgs_dir_path + "/" + image_dir + "/"+ file_name + image_extension);
+    //    label_paths.push_back(imgs_dir_path + "/" + label_dir + "/"+ file_name + label_extension);
 
-        // Print args found.
-        std::cout << "INPUT FILE PATH " << input_path << "\n";
-        std::cout << "FILE NAME " << file_name << "\n";
+    //    // Print args found.
+    //    std::cout << "INPUT FILE PATH " << imgs_dir_path << "\n";
+    //    std::cout << "FILE NAME " << file_name << "\n";
 
-    }else{
+    //}else{
 
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + image_dir )) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    complete_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
+    //    try {
+    //        // Create a directory iterator
+    //        for (const auto& entry : fs::directory_iterator(input_path + "/" + image_dir )) {
+    //            // Check if the entry is a regular file
+    //            if (entry.is_regular_file()) {
+    //                // Get the path and extract the filename
+    //                complete_paths.push_back(entry.path().string());
+    //                //std::cout<<entry.path().filename().string();
+    //            }
+    //        }
+    //    } catch (const fs::filesystem_error& e) {
+    //        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+    //        return 1;
+    //    }
 
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + label_dir)) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    label_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
+    //    try {
+    //        // Create a directory iterator
+    //        for (const auto& entry : fs::directory_iterator(input_path + "/" + label_dir)) {
+    //            // Check if the entry is a regular file
+    //            if (entry.is_regular_file()) {
+    //                // Get the path and extract the filename
+    //                label_paths.push_back(entry.path().string());
+    //                //std::cout<<entry.path().filename().string();
+    //            }
+    //        }
+    //    } catch (const fs::filesystem_error& e) {
+    //        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+    //        return 1;
+    //    }
 
-    }
+    //}
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
@@ -124,9 +122,10 @@ int main(int argc, char* argv[]) {
         emotion_rec_thread.join();
         return -1;
     };*/
+
     std::vector<cv::CascadeClassifier> face_cascades = get_classifier(classifiers_paths);
     std::vector<std::string> cropped_paths;
-    for(const auto& path : complete_paths){
+    for(const auto& path : imgs_paths){
         cv::Mat img = cv::imread(path);
         std::cout<<std::endl<< "Analyzing: "<<path;
 
@@ -184,16 +183,16 @@ int main(int argc, char* argv[]) {
         from_server.close();
         
         // Performance metrics, if necessary.
-        if (!file_name.empty()) {
-            std::vector<cv::Rect> label_rect = compute_rectangles(label_paths.back(), img.cols, img.rows);
-            PerformanceMetrics pm(faces, label_rect);
-            pm.print_metrics();
-        }
+        //if (!file_name.empty()) {
+        //    std::vector<cv::Rect> label_rect = compute_rectangles(labels_paths.back(), img.cols, img.rows);
+        //    PerformanceMetrics pm(faces, label_rect);
+        //    pm.print_metrics();
+        //}
 
-        /*draw_bbox(img, faces, labels);
-        namedWindow("Window", cv::WINDOW_NORMAL);
-        cv::imshow("Window", img);
-        cv::waitKey(0);*/
+        //draw_bbox(img, faces, labels);
+        //namedWindow("Window", cv::WINDOW_NORMAL);
+        //cv::imshow("Window", img);
+        //cv::waitKey(0);
 
         // Remove cropped
         for(const auto& cropped : cropped_paths){
