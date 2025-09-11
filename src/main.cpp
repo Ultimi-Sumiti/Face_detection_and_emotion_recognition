@@ -7,13 +7,15 @@
 #include <string>
 #include <fstream>
 #include <map>
-
+#include <errno.h>
+#include <sys/stat.h>
+#include <unistd.h> 
 
 #include "../include/utils.h"
 
 std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
-
+void fifo_creation(const char* fifo_name);
 
 std::vector<cv::Scalar> colors = {
         cv::Scalar(0, 0, 255),     // red
@@ -25,7 +27,7 @@ std::vector<cv::Scalar> colors = {
         cv::Scalar(128, 0, 128),   // purple    
 };
 
-std::map<std::string, cv::Scalar> labelColor = {
+std::map<std::string, cv::Scalar> label_color = {
     {"angry", colors[0]},
     {"disgust", colors[1]},
     {"fear", colors[2]},
@@ -41,16 +43,10 @@ int main(int argc, char* argv[]) {
     int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null &");
     // TODO gestione chiamata in background del file python (stiamo usando parallelismo)
 
-    /* Presetting Crea i .fifo e li gestisce
+    // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
+    fifo_creation("cpp_to_py.fifo");
+    fifo_creation("py_to_cpp.fifo");
 
-    if (mkfifo("cpp_to_py.fifo", 0666) == -1) {
-        perror("Errore nella creazione della FIFO");
-    }
-    if (mkfifo("py_to_cpp.fifo", 0666) == -1) {
-        perror("Errore nella creazione della FIFO");
-    }
-    
-    */
     // For per ciclare su tutte le immagini di test
     // con un flag che se attivato, non cicla su tutte , prende solo un immagine d auna cartella separata
 
@@ -82,9 +78,7 @@ int main(int argc, char* argv[]) {
 
     cv::Mat img = cv::imread(input_path);
     // Detect and save the faces in a specific folder.
-    std::vector<cv::Rect> faces = face_detect(img);
-
-    std::cout<<faces.size()<<std::endl;
+    std::vector<cv::Rect> faces = vj_detect(img, face_cascade);
 
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
@@ -92,7 +86,6 @@ int main(int argc, char* argv[]) {
     std::vector<cv::Mat>  cropped_imgs; 
 
     for (size_t i = 0; i < faces.size(); i++){
-
         // Cropping the detected faces.
         cv::Mat faceROI = img(faces[i]);
         cropped_imgs.push_back(faceROI.clone());
@@ -136,8 +129,32 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-// Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
+
+
+    void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels){
+
+        // Draw the box over the detection.
+        for (size_t i = 0; i < faces.size(); i++){
+
+            cv::Scalar color = cv::Scalar(255,255,255); // default = white
+            if (label_color.find(labels[i]) != label_color.end()) {
+                color = label_color[labels[i]];
+            }
+
+            // Draw the Bounding box
+            cv::rectangle(frame, faces[i], color, 4); 
+            // Draw the corrispective label on the BBox
+            cv::putText(frame, labels[i],
+                cv::Point(faces[i].x, faces[i].y - 5),             // 5 pixels above the top-left
+                cv::FONT_HERSHEY_SIMPLEX,
+                0.5,                              // font scale
+                color,
+                1,
+                cv::LINE_AA);     
+        }
+    }
+    // Detection function using the ViolaJones algorithm.
+    std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
@@ -150,30 +167,26 @@ std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade)
     f_cascade.detectMultiScale(frame_gray, faces);
 
     return faces;   
-}
 
-void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels){
-
-    // Draw the box over the detection.
-    for (size_t i = 0; i < faces.size(); i++){
-
-        cv::Scalar color = cv::Scalar(255,255,255); // default = white
-         if (labelColor.find(labels[i]) != labelColor.end()) {
-            color = labelColor[labels[i]];
-        }
-
-        // Draw the Bounding box
-        cv::rectangle(frame, faces[i], color, 4); 
-        // Draw the corrispective label on the BBox
-        cv::putText(frame, labels[i],
-            cv::Point(faces[i].x, faces[i].y - 5),             // 5 pixels above the top-left
-            cv::FONT_HERSHEY_SIMPLEX,
-            0.5,                              // font scale
-            color,
-            1,
-            cv::LINE_AA);     
     }
-}
+
+    // Function to check if a filesystem file .fifo is already present otherwise it create it.
+    void fifo_creation(const char* fifo_name) {
+
+        if (access(fifo_name, F_OK) != 0) { // If fifo doesn't exist.
+            if (mkfifo(fifo_name, 0666) == -1) { // If creation doesn't work
+                std::cerr << "Error in the creation of "
+                        << fifo_name << ": "
+                        << std::strerror(errno) << std::endl;
+            } else {
+                std::cout << "Creation of the fifo: " << fifo_name << std::endl;
+            }
+        } else {
+            std::cout << "fifo already exist" << std::endl;
+        }
+    }
+
+
 
 // // Show the images detected.
 //    cv::imshow("Window", frame);
@@ -186,3 +199,4 @@ void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std
 //    }
 //
 //    cv::waitKey(0);
+
