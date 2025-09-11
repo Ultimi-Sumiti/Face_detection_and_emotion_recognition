@@ -15,6 +15,8 @@ class FaceDetector{
 
     //CONSTRUCTOR
 
+        FaceDetector(){}
+
         FaceDetector(const std::vector<std::string> &paths){
 
             this->f_cascades = std::vector<cv::CascadeClassifier>(paths.size());
@@ -25,9 +27,9 @@ class FaceDetector{
                 }
             }
         }
+        FaceDetector(const FaceDetector&) = default;
 
     //MEMBER FUNCTIONS
-
         std::vector<cv::CascadeClassifier> get_detectors(){
             return this->f_cascades;
         }
@@ -36,8 +38,6 @@ class FaceDetector{
     std::vector<cv::Rect> face_detect(cv::Mat& frame);
     std::vector<cv::Rect> vj_detect(cv::Mat frame); // POTENZIALMENTE SI PUÒ togliere TODO
     
-
-
     private:
 
     // DATA MEMBERS

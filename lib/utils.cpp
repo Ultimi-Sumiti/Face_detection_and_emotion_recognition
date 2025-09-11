@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <numeric>
+#include <sys/stat.h>
+
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
 
@@ -97,7 +99,24 @@ void remove_images(const std::vector<std::string>& cropped_paths){
         }
     }
 }
+    
+void fifo_creation(const char *fifo_name){
 
+    if (access(fifo_name, F_OK) != 0){ 
+        // If fifo doesn't exist.
+        if (mkfifo(fifo_name, 0666) == -1){
+             // If creation doesn't work
+            std::cerr << "Error in the creation of "
+                      << fifo_name << ": "
+                      << std::strerror(errno) << std::endl;
+        }
+        else{
+            std::cout << "Creation of the fifo: " << fifo_name << std::endl;
+        }
+    }else{
+        std::cout << "fifo already exist" << std::endl;
+    }
+}
 /*
 int main(){
     std::vector<std::vector<float>> faces = parse_labels("../dataset_detection/labels/angry_1.txt");

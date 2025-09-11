@@ -7,7 +7,6 @@
 #include <string>
 #include <fstream>
 #include <errno.h>
-#include <sys/stat.h>
 #include <unistd.h> 
 #include <thread>
 //#include <Python.h>
@@ -19,14 +18,21 @@
 
 namespace fs = std::filesystem;
 
-void fifo_creation(const char* fifo_name);
-void recognition_pipeline_call();
+void recognition_pipeline_call(){
+        int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
 
+}
+
+
+const std::vector<std::string> classifiers_paths = {
+        "../classifiers/haarcascade_frontalface_alt_tree.xml",
+        "../classifiers/haarcascade_frontalface_alt.xml",
+        "../classifiers/haarcascade_frontalface_alt2.xml",
+        "../classifiers/haarcascade_frontalface_default.xml",
+        "../classifiers/haarcascade_profileface.xml",
+};
 
 int main(int argc, char* argv[]) {
-
-    // Call the python pipeline to classify the faces
-    std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
 
     // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
     fifo_creation("cpp_to_py.fifo");
@@ -48,7 +54,6 @@ int main(int argc, char* argv[]) {
 
     if (input_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
-        emotion_rec_thread.join();
         return -1;
     }
 
@@ -96,26 +101,22 @@ int main(int argc, char* argv[]) {
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
+    
 
+    // Define the FaceDetector passing it the path of the classifier to load.
+    FaceDetector detector;    
     try
     {
-        // ###TODO Gestire eccezione in caso di carico errato dei cascades
+        detector = FaceDetector(classifiers_paths);
     }
     catch(const std::runtime_error& e)
     {
-        std::cerr << "Exception caught: " << e.what() << std::endl;
+        std::cerr << "Exception caught, impossible to upload the cascades: " << e.what() << std::endl;
         return 1;
     }
 
-    const std::vector<std::string> classifiers_paths = {
-        "../classifiers/haarcascade_frontalface_alt_tree.xml",
-        "../classifiers/haarcascade_frontalface_alt.xml",
-        "../classifiers/haarcascade_frontalface_alt2.xml",
-        "../classifiers/haarcascade_frontalface_default.xml",
-        "../classifiers/haarcascade_profileface.xml",
-    };
-    // Define the FaceDetector passing it the path of the classifier to load.
-    FaceDetector detector(classifiers_paths);
+    // Call the python pipeline to classify the faces
+    std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
 
     // Start processing all images.
     for(const auto& path : complete_paths){
@@ -202,24 +203,6 @@ int main(int argc, char* argv[]) {
 
 
 
-    
-    // Function to check if a filesystem file .fifo is already present otherwise it create it.
-    void fifo_creation(const char* fifo_name) {
 
-        if (access(fifo_name, F_OK) != 0) { // If fifo doesn't exist.
-            if (mkfifo(fifo_name, 0666) == -1) { // If creation doesn't work
-                std::cerr << "Error in the creation of "
-                        << fifo_name << ": "
-                        << std::strerror(errno) << std::endl;
-            } else {
-                std::cout << "Creation of the fifo: " << fifo_name << std::endl;
-            }
-        } else {
-            std::cout << "fifo already exist" << std::endl;
-        }
-    }
 
-    void recognition_pipeline_call(){
-        int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
-
-    }
+   
