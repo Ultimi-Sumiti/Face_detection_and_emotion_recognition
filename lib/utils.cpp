@@ -128,23 +128,25 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
     return stddev.val[0] * stddev.val[0];
 }
 
+std::vector<cv::CascadeClassifier> get_classifier(const std::vector<std::string>& paths){
+    // Load the cascades.
+    std::vector<cv::CascadeClassifier> f_cascades (paths.size());
+    for(int i = 0; i < paths.size(); i++ ){
+        if (!f_cascades[i].load(paths[i])){
+            std::cout << "Error loading face cascade\n";
+            exit(1);
+        }
+    }
+    return f_cascades;
+}
 
 // Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> face_detect(cv::Mat& frame){
+std::vector<cv::Rect> face_detect(cv::Mat& frame, std::vector<cv::CascadeClassifier>& f_cascades){
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
     // Histogram equalization.
     cv::equalizeHist(frame_gray, frame_gray); 
-
-    // Load the cascades.
-    std::vector<cv::CascadeClassifier> f_cascades (file_paths.size());
-    for(int i = 0; i < file_paths.size(); i++ ){
-        if (!f_cascades[i].load(file_paths[i])){
-            std::cout << "Error loading face cascade\n";
-            exit(1);
-        }
-    }
 
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;

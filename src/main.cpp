@@ -119,11 +119,12 @@ int main(int argc, char* argv[]) {
     cv::CascadeClassifier face_cascade;
     
     // Load the cascades.
-    if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
+    /*if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
         std::cout << "Error loading face cascade\n";
         emotion_rec_thread.join();
         return -1;
-    };
+    };*/
+    std::vector<cv::CascadeClassifier> face_cascades = get_classifier(classifiers_paths);
     std::vector<std::string> cropped_paths;
     for(const auto& path : complete_paths){
         cv::Mat img = cv::imread(path);
@@ -135,7 +136,7 @@ int main(int argc, char* argv[]) {
         }
         
         // Detect and save the faces in a specific folder.
-        std::vector<cv::Rect> faces = face_detect(img);
+        std::vector<cv::Rect> faces = face_detect(img, face_cascades);
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
         
         // Folder path in which will be saved the images.
