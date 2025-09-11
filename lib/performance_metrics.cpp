@@ -9,7 +9,6 @@
 
 
 // MEMBER FUNCTIONS
-
 // This member function compute the IOUs of the detected faces.
 std::vector<float> PerformanceMetrics::get_label_IOUs(){
     float current_IoU;

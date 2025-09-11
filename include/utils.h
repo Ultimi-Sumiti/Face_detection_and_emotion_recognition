@@ -17,9 +17,9 @@ const std::vector<std::string> file_paths= {
 "../classifiers/haarcascade_profileface.xml",
 };
 
-const std::string image_dir = "../dataset_detection/images/";
+const std::string image_dir = "images";
 
-const std::string label_dir = "../dataset_detection/labels/";
+const std::string label_dir = "labels";
 
 const std::string image_extension = ".jpg";
 

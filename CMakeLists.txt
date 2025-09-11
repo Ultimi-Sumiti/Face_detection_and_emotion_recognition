@@ -9,6 +9,8 @@ include_directories(include)
 add_library(CVFinal
     include/utils.h
     lib/utils.cpp
+    include/performance_metrics.h
+    lib/performance_metrics.cpp
     )
 
 add_executable(out
