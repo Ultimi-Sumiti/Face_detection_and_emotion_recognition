@@ -2,39 +2,70 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+#include <dirent.h>
 #include <numeric>
 #include <sys/stat.h>
 #include <filesystem>
 
 #include "../include/utils.h"
+#include <filesystem>
 #include "../include/performance_metrics.h"
 
 namespace fs = std::filesystem;
 
 void parse_command_line(
-    int argc,
-    char **argv,
-    std::string& input_path,
-    std::string& file_name
+        int argc,
+        char **argv,
+        std::string& imgs_dir_path,
+        std::string& labels_dir_path
 ) {
     int opt;
-    while ((opt = getopt(argc, argv, "i:n:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:l:")) != -1) {
         switch (opt) {
             case 'i':
-                input_path = optarg;
+                imgs_dir_path = optarg;
                 break;
-            case 'n':
-                file_name = optarg;
+            case 'l':
+                labels_dir_path = optarg;
                 break;
             case '?':
                 std::cerr << "Usage: " << argv[0] 
                     << " -i <path> -l <path>\n"
                     << "  Where:\n"
-                    << "    -i is the input image path\n"
-                    << "    -l is the label of the input image (OPTIONAL)\n";
+                    << "    -i is the input image directory path\n"
+                    << "    -l is the label directory path (OPTIONAL)\n";
                 break;
         }
     }
+}
+
+
+std::vector<std::string> get_all_filenames(const std::string& dir_path) {
+    DIR* dir;
+    struct dirent* ent;
+    std::vector<std::string> filenames;
+
+    // Process all the files insider the directory.
+    if ((dir = opendir(dir_path.c_str())) != NULL) {
+
+        while ((ent = readdir (dir)) != NULL) {
+
+            // Get filename.
+            std::string file_name = ent->d_name;
+
+            // Skip current and parent.
+            if (file_name == "." || file_name == "..") continue;
+
+            if (*(dir_path.end() - 1) == '/')
+                filenames.push_back(dir_path + file_name);
+            else
+                filenames.push_back(dir_path + "/" + file_name);
+        }
+
+        closedir(dir); // Close the directory.
+    }
+
+    return filenames;
 }
 
 

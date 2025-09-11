@@ -14,10 +14,8 @@
 
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
-#include "face_detector.h"
+#include "../include/face_detector.h"
 
-
-namespace fs = std::filesystem;
 
 void recognition_pipeline_call(){
         int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
@@ -33,80 +31,35 @@ const std::vector<std::string> classifiers_paths = {
         "../classifiers/haarcascade_profileface.xml",
 };
 
-const std::string image_dir = "images";
-const std::string label_dir = "labels";
+
+const std::string detections_path = "../detections/";
 const std::string image_extension = ".jpg";
-const std::string label_extension = ".txt";
-const std::string detection_dir = "detections";
 
 
 int main(int argc, char* argv[]) {
 
-    // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
+    // Create fifo files for Inter Process Communication (CPP, Python).
     fifo_creation("cpp_to_py.fifo");
     fifo_creation("py_to_cpp.fifo");
 
-    // Parse command line.
-    std::string input_path{}, file_name{};
-    parse_command_line(argc, argv, input_path, file_name);
+    // Parse command line, get image directory and (optinally) labels directory.
+    std::string imgs_dir_path{}, labels_dir_path{};
+    parse_command_line(argc, argv, imgs_dir_path, labels_dir_path);
         
-    
-    std::vector<std::string> complete_paths;
-    std::vector<std::string> label_paths;
-    std::string detection_path = input_path + "/" + detection_dir + "/";
-
-
-    if (input_path.empty()) {
+    if (imgs_dir_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
-        return -1;
+        return EXIT_FAILURE;
     }
-
-    if (!file_name.empty()){
-        complete_paths.push_back(input_path + "/" + image_dir + "/"+ file_name + image_extension);
-        label_paths.push_back(input_path + "/" + label_dir + "/"+ file_name + label_extension);
-
-        // Print args found.
-        std::cout << "INPUT FILE PATH " << input_path << "\n";
-        std::cout << "FILE NAME " << file_name << "\n";
-
-    }else{
-
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + image_dir )) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    complete_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
-
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + label_dir)) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    label_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
-
-    }
+    
+    // Retreive all filenames inside the directories.
+    std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
+    std::vector<std::string> labels_paths{};
+    if (!labels_dir_path.empty())
+        labels_paths = get_all_filenames(labels_dir_path);
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     
-
     // Define the FaceDetector passing it the path of the classifier to load.
     FaceDetector detector;    
     try
@@ -124,7 +77,7 @@ int main(int argc, char* argv[]) {
 
     // Start processing all images.
     int count = 0;
-    for(const auto& path : complete_paths){
+    for(const auto& path : imgs_paths){
 
         // Processing the current image
         cv::Mat img = cv::imread(path);
@@ -176,7 +129,7 @@ int main(int argc, char* argv[]) {
         // Draw the detection with the labels on current image.
         detector.draw_bbox(img, faces, labels);
 
-        std::string full_detection_path = detection_path + "image_" + std::to_string(count) + image_extension;
+        std::string full_detection_path = detections_path + "image_" + std::to_string(count) + image_extension;
         std::cout<<full_detection_path<<std::endl;
         if(cv::imwrite( full_detection_path, img)){
             std::cout<<"Image: "<<"image_" + std::to_string(count)<<" saved."<<std::endl;
@@ -187,11 +140,16 @@ int main(int argc, char* argv[]) {
         
         //  ------------------------------------ PERFORMANCE METRICS ------------------------------------ 
         // Performance metrics, if necessary.
-        if (!file_name.empty()) {
-            std::vector<cv::Rect> label_rect = compute_rectangles(label_paths.back(), img.cols, img.rows);
-            PerformanceMetrics pm(faces, label_rect);
-            pm.print_metrics();
-        }
+        //if (!file_name.empty()) {
+        //    std::vector<cv::Rect> label_rect = compute_rectangles(labels_paths.back(), img.cols, img.rows);
+        //    PerformanceMetrics pm(faces, label_rect);
+        //    pm.print_metrics();
+        //}
+
+        //draw_bbox(img, faces, labels);
+        //namedWindow("Window", cv::WINDOW_NORMAL);
+        //cv::imshow("Window", img);
+        //cv::waitKey(0);
 
         // Remove cropped
         remove_images(cropped_paths); 
