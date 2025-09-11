@@ -11,6 +11,8 @@ add_library(CVFinal
     lib/utils.cpp
     include/performance_metrics.h
     lib/performance_metrics.cpp
+    include/face_detector.h
+    lib/face_detector.cpp
     )
 
 add_executable(out

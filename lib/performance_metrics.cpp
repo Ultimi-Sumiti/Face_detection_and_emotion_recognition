@@ -8,7 +8,7 @@
 #include "../include/performance_metrics.h"
 
 
-// MEMBER FUNCTIONS
+// -------------- MEMBER FUNCTIONS --------------
 // This member function compute the IOUs of the detected faces.
 std::vector<float> PerformanceMetrics::get_label_IOUs(){
     float current_IoU;
@@ -67,7 +67,7 @@ float PerformanceMetrics::compute_MIOU(){
 }
 
 
-// HELPER FUNCTIONS: 
+// -------------- HELPER FUNCTIONS --------------
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
 float compute_IOU(cv::Rect& box1, cv::Rect& box2){
