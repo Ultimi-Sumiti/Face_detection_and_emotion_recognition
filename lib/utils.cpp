@@ -117,15 +117,3 @@ void fifo_creation(const char *fifo_name){
         std::cout << "fifo already exist" << std::endl;
     }
 }
-/*
-int main(){
-    std::vector<std::vector<float>> faces = parse_labels("../dataset_detection/labels/angry_1.txt");
-    if(!faces.empty()){
-        std::cout<<faces[0][0]<<std::endl;
-        std::cout<<faces[0][1]<<std::endl;
-        std::cout<<faces[0][2]<<std::endl;
-        std::cout<<faces[0][3]<<std::endl;
-        std::cout<<faces[0][4]<<std::endl;
-    }
-
-}*/
