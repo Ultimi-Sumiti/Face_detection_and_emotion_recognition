@@ -131,7 +131,6 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
 
 // Detection function using the ViolaJones algorithm.
 std::vector<cv::Rect> face_detect(cv::Mat& frame){
-
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -164,7 +163,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
     std::vector<cv::Rect> filtered_faces; 
     std::vector<cv::Rect> best_detections; 
     int min_score = 1000000;
-    int min_area = frame.rows * frame.cols /150;
+    int min_area = frame.rows * frame.cols /100;
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;

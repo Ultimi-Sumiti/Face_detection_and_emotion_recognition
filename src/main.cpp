@@ -12,6 +12,7 @@
 #include <unistd.h> 
 
 #include "../include/utils.h"
+#include "../include/performance_metrics.h"
 
 std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
@@ -64,21 +65,30 @@ int main(int argc, char* argv[]) {
     // Print args found.
     std::cout << "INPUT FILE PATH " << input_path << "\n";
     if (!file_name.empty())
-        std::cout << "LABEL FILE PATH " << file_name << "\n";
+        std::cout << "FILE NAME " << file_name << "\n";
+
+    
+    std::string complete_path = input_path + "/" + image_dir + "/"+ file_name + image_extension;
+    std::string label_path = input_path + "/" + label_dir + "/"+ file_name + label_extension;
+    std::cout<<"Image path detected: "<< complete_path<<std::endl;
+    std::cout<<"Label path detected: "<<label_path<<std::endl;
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     cv::CascadeClassifier face_cascade;
 
     // Load the cascades.
     if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
-
         std::cout << "Error loading face cascade\n";
         return -1;
     };
 
-    cv::Mat img = cv::imread(input_path);
+    cv::Mat img = cv::imread(complete_path);
+    if(img.empty()){
+        std::cerr<<"Error: cannot open image!"<<std::endl;
+        return -1;
+    }
     // Detect and save the faces in a specific folder.
-    std::vector<cv::Rect> faces = vj_detect(img, face_cascade);
+    std::vector<cv::Rect> faces = face_detect(img);
 
     // Folder path in which will be saved the images.
     std::string folder_path_cropped_imgs = "../cropped_imgs/";
@@ -117,7 +127,7 @@ int main(int argc, char* argv[]) {
     
     // Performance metrics, if necessary.
     if (!file_name.empty()) {
-        std::vector<cv::Rect> label_rect = compute_rectangles(input_path + file_name, img.cols, img.rows);
+        std::vector<cv::Rect> label_rect = compute_rectangles(label_path, img.cols, img.rows);
         PerformanceMetrics pm(faces, label_rect);
         pm.print_metrics();
     }
@@ -156,17 +166,17 @@ int main(int argc, char* argv[]) {
     // Detection function using the ViolaJones algorithm.
     std::vector<cv::Rect> vj_detect(cv::Mat frame , cv::CascadeClassifier f_cascade){
 
-    cv::Mat frame_gray;
-    // Convert into GRAY the frame passed.
-    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-    // Histogram equalization.
-    cv::equalizeHist(frame_gray, frame_gray); 
+        cv::Mat frame_gray;
+        // Convert into GRAY the frame passed.
+        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
+        // Histogram equalization.
+        cv::equalizeHist(frame_gray, frame_gray); 
 
-    // Detect faces on the frame in gray scale.
-    std::vector<cv::Rect> faces;
-    f_cascade.detectMultiScale(frame_gray, faces);
+        // Detect faces on the frame in gray scale.
+        std::vector<cv::Rect> faces;
+        f_cascade.detectMultiScale(frame_gray, faces);
 
-    return faces;   
+        return faces;   
 
     }
 
