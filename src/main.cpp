@@ -116,10 +116,10 @@ int main(int argc, char* argv[]) {
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     
-    cv::CascadeClassifier face_cascade;
+    /*cv::CascadeClassifier face_cascade;
     
     // Load the cascades.
-    /*if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
+    if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
         std::cout << "Error loading face cascade\n";
         emotion_rec_thread.join();
         return -1;
