@@ -56,19 +56,19 @@ int main(int argc, char* argv[]) {
 
 
     // Parse command line.
-    std::string input_path{}, label_path{};
-    parse_command_line(argc, argv, input_path, label_path);
+    std::string input_path{}, file_name{};
+    parse_command_line(argc, argv, input_path, file_name);
 
     if (input_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
         return 1;
     }
-    if (label_path.empty())
-        std::cerr << "Info: label file not provided, IoU will not be computed.\n";
+    if (file_name.empty())
+        std::cerr << "Info: file name not provided, IoU will not be computed.\n";
     // Print args found.
     std::cout << "INPUT FILE PATH " << input_path << "\n";
-    if (!label_path.empty())
-        std::cout << "LABEL FILE PATH " << label_path << "\n";
+    if (!file_name.empty())
+        std::cout << "LABEL FILE PATH " << file_name << "\n";
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     cv::CascadeClassifier face_cascade;
@@ -122,6 +122,13 @@ int main(int argc, char* argv[]) {
     } 
     from_server.close();
     
+    // Performance metrics, if necessary.
+    if (!file_name.empty()) {
+        std::vector<cv::Rect> label_rect = compute_rectangles(input_path + file_name, img.cols, img.rows);
+        PerformanceMetrics pm(faces, label_rect);
+        pm.print_metrics();
+    }
+
     draw_bbox(img, faces, labels);
     namedWindow("Window", cv::WINDOW_NORMAL);
     cv::imshow("Window", img);

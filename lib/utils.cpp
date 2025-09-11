@@ -11,16 +11,16 @@ void parse_command_line(
     int argc,
     char **argv,
     std::string& input_path,
-    std::string& label_path
+    std::string& file_name
 ) {
     int opt;
-    while ((opt = getopt(argc, argv, "i:l:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:n:")) != -1) {
         switch (opt) {
             case 'i':
                 input_path = optarg;
                 break;
-            case 'l':
-                label_path = optarg;
+            case 'n':
+                file_name = optarg;
                 break;
             case '?':
                 std::cerr << "Usage: " << argv[0] 
