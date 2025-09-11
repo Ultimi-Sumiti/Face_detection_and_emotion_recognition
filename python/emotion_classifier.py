@@ -36,7 +36,7 @@ def main():
     # Waiting the signal from image detection.
     with open("cpp_to_py.fifo", "r") as fifo:
         msg = fifo.readline().strip()
-        print(f"[Python] Recived from C++: {msg}")
+        print(f"INFO: Recived from C++: {msg}")
         fifo.flush()
         # If nothing is detected the program terminates
         if msg == "exit":

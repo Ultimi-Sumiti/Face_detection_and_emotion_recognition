@@ -11,21 +11,23 @@
 #include <sys/stat.h>
 #include <unistd.h> 
 #include <thread>
+//#include <Python.h>
 
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
 
 std::vector<cv::Rect> vj_detect(cv::Mat frame, cv::CascadeClassifier f_cascade);
 void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
+void crop_images(cv::Mat img , std::vector<cv::Rect> faces);
 void fifo_creation(const char* fifo_name);
 void recognition_pipeline_call();
 
 std::vector<cv::Scalar> colors = {
         cv::Scalar(0, 0, 255),     // red
         cv::Scalar(0, 255, 255),   // yellow
-        cv::Scalar(0,0,0),         //black
+        cv::Scalar(0,0,0),         // black
         cv::Scalar(0, 255, 0),     // green
-        cv::Scalar(255, 255, 255),   // white
+        cv::Scalar(255, 255, 255), // white
         cv::Scalar(255, 0, 0),     // blue
         cv::Scalar(128, 0, 128),   // purple    
 };
@@ -48,10 +50,6 @@ int main(int argc, char* argv[]) {
     // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
     fifo_creation("cpp_to_py.fifo");
     fifo_creation("py_to_cpp.fifo");
-
-    // For per ciclare su tutte le immagini di test
-    // con un flag che se attivato, non cicla su tutte , prende solo un immagine d auna cartella separata
-
 
     // Parse command line.
     std::string input_path{}, file_name{};
@@ -77,15 +75,19 @@ int main(int argc, char* argv[]) {
     std::cout<<"Image path detected: "<< complete_path<<std::endl;
     std::cout<<"Label path detected: "<<label_path<<std::endl;
 
+    // For per ciclare su tutte le immagini di test
+    // con un flag che se attivato, non cicla su tutte , prende solo un immagine d auna cartella separata
+
+
     // -------------------------------------- FACE DETECTION --------------------------------------
     cv::CascadeClassifier face_cascade;
     
-    // Load the cascades.
-    if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
-        std::cout << "Error loading face cascade\n";
-        emotion_rec_thread.join();
-        return -1;
-    };
+ //   // Load the cascades.
+ //   if (!face_cascade.load("../classifiers/haarcascade_frontalface_alt.xml")){
+ //       std::cout << "Error loading face cascade\n";
+ //       emotion_rec_thread.join();
+ //       return -1;
+ //   };
     
     cv::Mat img = cv::imread(complete_path);
     if(img.empty()){
@@ -96,19 +98,8 @@ int main(int argc, char* argv[]) {
     
     // Detect and save the faces in a specific folder.
     std::vector<cv::Rect> faces = face_detect(img);
-    
-    // Folder path in which will be saved the images.
-    std::string folder_path_cropped_imgs = "../cropped_imgs/";
-    // Vector of cropped images and vector of bounding boxes.
-    std::vector<cv::Mat>  cropped_imgs; 
-
-    for (size_t i = 0; i < faces.size(); i++){
-        // Cropping the detected faces.
-        cv::Mat faceROI = img(faces[i]);
-        cropped_imgs.push_back(faceROI.clone());
-        // Saving the cropped images.
-        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
-    }
+    std::cout<<"Arriva a crop\n";
+    crop_images(img, faces);
     
     // ------------------------------------ EMOTION RECOGNITION ------------------------------------
     // Signal (to Python)
@@ -158,6 +149,20 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+    void crop_images(cv::Mat img , std::vector<cv::Rect> faces){
+    // Folder path in which will be saved the images.
+    std::string folder_path_cropped_imgs = "../cropped_imgs/";
+    // Vector of cropped images and vector of bounding boxes.
+    std::vector<cv::Mat>  cropped_imgs;
+
+    for (size_t i = 0; i < faces.size(); i++){
+        // Cropping the detected faces.
+        cv::Mat faceROI = img(faces[i]);
+        cropped_imgs.push_back(faceROI.clone());
+        // Saving the cropped images.
+        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i) + ".png", cropped_imgs[i]);
+    }
+}
 
 
     void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels){
