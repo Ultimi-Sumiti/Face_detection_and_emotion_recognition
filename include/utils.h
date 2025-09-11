@@ -9,7 +9,7 @@
 #include "opencv2/videoio.hpp"
 
 
-const std::vector<std::string> file_paths= {
+const std::vector<std::string> classifiers_paths= {
 "../classifiers/haarcascade_frontalface_alt_tree.xml",
 "../classifiers/haarcascade_frontalface_alt.xml",
 "../classifiers/haarcascade_frontalface_alt2.xml",
@@ -42,5 +42,8 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
 std::vector<std::vector<float>> parse_labels(const std::string& filename);
 
 // Detection function using the ViolaJones algorithm.
-std::vector<cv::Rect> face_detect(cv::Mat& frame);
+std::vector<cv::Rect> face_detect(cv::Mat& frame, std::vector<cv::CascadeClassifier>& f_cascades);
+
+
+std::vector<cv::CascadeClassifier> get_classifier(const std::vector<std::string>& paths);
 #endif
