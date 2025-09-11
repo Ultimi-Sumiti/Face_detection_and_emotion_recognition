@@ -169,7 +169,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
 
     // Checking all possible faces cascades. 
     for(int i = 0; i < f_cascades.size(); i++){
-        std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
+        // std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
         faces.clear();
         f_cascades[i].detectMultiScale(
             frame_gray,
@@ -185,14 +185,14 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
         );
 
 
-        std::cout << "Found " << faces.size() << " faces." << std::endl;
+        //std::cout << "Found " << faces.size() << " faces." << std::endl;
         // Loop through each detected face.
         for(int j = 0; j < faces.size(); j++){
             // Print the confidence score for the corresponding face.
             blur_score = calculateBlurScore(frame, faces[j]);
             score =  blur_score * faces[j].area();
-            std::cout << "Face " << j
-                << " -> Score: " << score <<std::endl;
+            //std::cout << "Face " << j
+            //   << " -> Score: " << score <<std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
             if((score >= min_score || blur_score > avg_blur) && faces[j].area() > min_area){
                 filtered_faces.push_back(faces[j]);
@@ -201,7 +201,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
         }
         
         if(faces.size() > 0){
-            std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
+            //std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
         }
 
 
@@ -217,19 +217,15 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
         actual_score = 0;
     }
 
-    std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
-    std::cout<<"  with score: "<<best_score<<std::endl<<std::endl;
+    //std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
+    //std::cout<<"  with score: "<<best_score<<std::endl<<std::endl;
 
     final_classifier = f_cascades[best_index];
 
-    std::cout<<"Detected rectangles position and size: "<<std::endl;
-    printRectDetails(best_detections);
-    std::cout<<std::endl;
+    //std::cout<<"Detected rectangles position and size: "<<std::endl;
+    //printRectDetails(best_detections);
+    //std::cout<<std::endl;
 
-    if(best_detections.size() == 0){
-        std::cout<<"Error: no detection!";
-        exit(1);
-    }
     
     /*
     // Folder path in which will be saved the images.

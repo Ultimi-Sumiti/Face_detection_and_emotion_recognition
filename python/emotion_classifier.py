@@ -33,27 +33,33 @@ def main():
     model = load_model(CHKP_PATH)
     print("INFO: Pre-trained model loaded.")
 
-    # Waiting the signal from image detection.
-    with open("cpp_to_py.fifo", "r") as fifo:
-        msg = fifo.readline().strip()
-        print(f"[Python] Recived from C++: {msg}")
-        fifo.flush()
-        # If nothing is detected the program terminates
-        if msg == "exit":
-            return -1
-            
-    # Load all images in the directory.
-    imgs = [
-        os.path.join(IMGS_DIR, filename) 
-        for filename in os.listdir(IMGS_DIR) if filename != ".gitkeep"
-    ]
-
-    # Classify each image.
-    with open("py_to_cpp.fifo", "w") as fifo:
-        for img in imgs:
-            idx = class_idx(model, img)
-            fifo.write(f"{CLASSES[idx]}\n")
+    while True:
+        print("Python: waiting c++ instructions.")
+        # Waiting the signal from image detection.
+        with open("cpp_to_py.fifo", "r") as fifo:
+            msg = fifo.readline().strip()
+            print(f"[Python] Recived from C++: {msg}")
             fifo.flush()
+            # If nothing is detected the program terminates
+            if msg == "exit":
+                return -1
+            if msg == "continue":
+                continue
+                
+        # Load all images in the directory.
+        imgs = [
+            os.path.join(IMGS_DIR, filename) 
+            for filename in os.listdir(IMGS_DIR) if filename != ".gitkeep"
+        ]
+
+
+        print("Python: sending classes.")
+        # Classify each image.
+        with open("py_to_cpp.fifo", "w") as fifo:
+            for img in imgs:
+                idx = class_idx(model, img)
+                fifo.write(f"{CLASSES[idx]}\n")
+                fifo.flush()
   
 if __name__ == "__main__":
     main()
