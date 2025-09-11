@@ -123,6 +123,7 @@ int main(int argc, char* argv[]) {
     from_server.close();
     
     draw_bbox(img, faces, labels);
+    namedWindow("Window", cv::WINDOW_NORMAL);
     cv::imshow("Window", img);
     cv::waitKey(0);
     return 0;

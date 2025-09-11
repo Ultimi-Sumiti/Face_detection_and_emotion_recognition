@@ -200,7 +200,7 @@ std::vector<cv::Rect> face_detect(cv::Mat& frame){
             std::cout << "Face " << j
                 << " -> Score: " << score <<std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score >= min_score || blur_score > avg_blur) && faces[i].area() > min_area){
+            if((score >= min_score || blur_score > avg_blur) && faces[j].area() > min_area){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
