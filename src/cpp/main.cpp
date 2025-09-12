@@ -124,6 +124,12 @@ int main(int argc, char* argv[]) {
             // Singal (to Python) for closing its pipeline. 
             to_server << "continue" << std::endl; 
             // Go to next iteration (next image).
+            if (!labels_paths.empty()) {
+                labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+                PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect);
+                if (itr == 0) pm.clean_metrics();
+                pm.print_metrics(imgs_paths[itr]);
+            }
             continue;
         }
         to_server << "Required Emotion recognition" << std::endl;

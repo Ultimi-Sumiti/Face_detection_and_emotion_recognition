@@ -78,7 +78,6 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
     int score = 0;
     std::vector<cv::Rect> filtered_faces; 
     std::vector<cv::Rect> best_detections; 
-    int min_score = 1000000;
     int min_area = area / 100;
     int min_side = static_cast<int>(std::sqrt(min_area));
     int best_score = 0;
@@ -87,7 +86,9 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
     int best_count = 0;
     float blur_score = 0.0f;
     cv::Rect img_rect = cv::Rect(0,0, frame.cols,frame.rows);
-    float avg_blur = calculateBlurScore(frame, img_rect);
+    float min_blur = calculateBlurScore(frame, img_rect) / 2;
+    int min_score = min_blur * min_area;
+    int min_weight = 80;
 
     // Checking all possible faces cascades. 
     for(int i = 0; i < this->f_cascades.size(); i++){
@@ -98,8 +99,8 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
             faces,
             rejectLevels,
             levelWeights,
-            1.1, // scaleFactor
-            5,   // minNeighbors
+            1.02, // scaleFactor
+            10,   // minNeighbors
             0,   // flags
             cv::Size(min_side, min_side), // minSize
             cv::Size(),       // maxSize
@@ -112,10 +113,9 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
             // Print the confidence score for the corresponding face.
             blur_score = calculateBlurScore(frame, faces[j]);
             score =  blur_score * faces[j].area();
-            //std::cout << "Face " << j
-            //   << " -> Score: " << score <<std::endl;
+            // std::cout << std::endl << "Face " << j << " -> Score: " << levelWeights[j] << std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score >= min_score || blur_score > avg_blur) && faces[j].area() > min_area){
+            if((score >= min_score) && levelWeights[j] > min_weight){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
