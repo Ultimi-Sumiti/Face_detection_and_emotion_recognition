@@ -30,10 +30,6 @@ std::vector<std::string> crop_images(cv::Mat img , std::vector<cv::Rect> faces, 
 void remove_images(const std::vector<std::string>& cropped_paths);
 
 // Function to check if a filesystem file .fifo is already present otherwise it create it.
-void fifo_creation(const char *fifo_name);
-
-
-
-
+void fifo_creation(const std::string& fifo_name);
 
 #endif

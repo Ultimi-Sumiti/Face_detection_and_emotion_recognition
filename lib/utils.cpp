@@ -127,20 +127,17 @@ void remove_images(const std::vector<std::string>& cropped_paths){
     }
 }
     
-void fifo_creation(const char *fifo_name){
+void fifo_creation(const std::string& fifo_name) {
+    if (access(fifo_name.c_str(), F_OK) != 0) { 
 
-    if (access(fifo_name, F_OK) != 0){ 
         // If fifo doesn't exist.
-        if (mkfifo(fifo_name, 0666) == -1){
-             // If creation doesn't work
+        if (mkfifo(fifo_name.c_str(), 0666) == -1)
+            // If creation doesn't work
             std::cerr << "Error in the creation of "
-                      << fifo_name << ": "
-                      << std::strerror(errno) << std::endl;
-        }
-        else{
+                << fifo_name << ": "
+                << std::strerror(errno) << std::endl;
+        else
             std::cout << "Creation of the fifo: " << fifo_name << std::endl;
-        }
-    }else{
-        std::cout << "fifo already exist" << std::endl;
+
     }
 }

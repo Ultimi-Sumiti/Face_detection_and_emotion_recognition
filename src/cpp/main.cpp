@@ -29,6 +29,9 @@ const std::string folder_path_cropped_imgs = "../tmp/cropped_imgs/";
 const std::string detections_path = "../output/detections/";
 const std::string image_extension = ".jpg";
 
+const std::string SEND_FIFO = "../tmp/cpp_to_py.fifo";
+const std::string RECEIVE_FIFO = "../tmp/py_to_cpp.fifo";
+
 
 int main(int argc, char* argv[]) {
 
@@ -36,8 +39,8 @@ int main(int argc, char* argv[]) {
     remove_images(get_all_filenames(detections_path));
 
     // Create fifo files for Inter Process Communication (CPP, Python).
-    fifo_creation("cpp_to_py.fifo");
-    fifo_creation("py_to_cpp.fifo");
+    fifo_creation(SEND_FIFO);
+    fifo_creation(RECEIVE_FIFO);
 
     // Parse command line, get image directory and (optinally) labels directory.
     std::string imgs_dir_path{}, labels_dir_path{};
@@ -92,7 +95,7 @@ int main(int argc, char* argv[]) {
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
         // Signal (to Python).
         std::cout<<"Prima di python\n";   
-        std::ofstream to_server("cpp_to_py.fifo");
+        std::ofstream to_server(SEND_FIFO);
 
         if(faces.empty()){
             std::cout <<"No faces are detected, going to next image\n";
@@ -108,7 +111,7 @@ int main(int argc, char* argv[]) {
 
         // Waiting (from Python)
         std::cout << "Waiting Python Response...\n";
-        std::ifstream from_server("py_to_cpp.fifo");
+        std::ifstream from_server(RECEIVE_FIFO);
         std::string line;
         std::vector<std::string> labels;
 
@@ -156,7 +159,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Sending exit message to python.
-    std::ofstream to_server("cpp_to_py.fifo");
+    std::ofstream to_server(SEND_FIFO);
     to_server << "exit" << std::endl;
 
     // Wait the thread ends.

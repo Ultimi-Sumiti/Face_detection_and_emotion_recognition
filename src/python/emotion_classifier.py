@@ -36,7 +36,7 @@ def main():
     while True:
         print("Python: waiting c++ instructions.")
         # Waiting the signal from image detection.
-        with open("cpp_to_py.fifo", "r") as fifo:
+        with open("../tmp/cpp_to_py.fifo", "r") as fifo:
             msg = fifo.readline().strip()
             print(f"[Python] Recived from C++: {msg}")
             fifo.flush()
@@ -55,7 +55,7 @@ def main():
 
         print("Python: sending classes.")
         # Classify each image.
-        with open("py_to_cpp.fifo", "w") as fifo:
+        with open("../tmp/py_to_cpp.fifo", "w") as fifo:
             for img in imgs:
                 idx = class_idx(model, img)
                 fifo.write(f"{CLASSES[idx]}\n")
