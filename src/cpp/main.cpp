@@ -123,6 +123,7 @@ int main(int argc, char* argv[]) {
             std::cout <<"No faces are detected, going to next image." << std::endl;
             // Singal (to Python) for closing its pipeline. 
             to_server << "continue" << std::endl; 
+            to_server.close();
             // Go to next iteration (next image).
 /**/        if (!labels_paths.empty()) { // TODO: modificare sto codice doppio orribile.
                 labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
@@ -132,7 +133,8 @@ int main(int argc, char* argv[]) {
             }
             continue;
         }
-        to_server << "Required Emotion recognition" << std::endl;
+
+        to_server << "start" << std::endl;
         to_server.close();
 
         // **** Python program is currently detecting *****
