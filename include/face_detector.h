@@ -49,7 +49,7 @@ class FaceDetector{
         cv::Scalar(0, 0, 255),     // red
         cv::Scalar(0, 255, 255),   // yellow
         cv::Scalar(0, 0, 0),       // black
-        cv::Scalar(0, 255, 0),     // green
+        cv::Scalar(80, 200, 120),     // green
         cv::Scalar(255, 255, 255), // white
         cv::Scalar(255, 0, 0),     // blue
         cv::Scalar(128, 0, 128),   // purple

@@ -7,36 +7,41 @@ void FaceDetector::draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const s
     {
         cv::Scalar color = cv::Scalar(255, 255, 255); // default = white
         if (this->label_color.find(labels[i]) != this->label_color.end())
-        {
             color = this->label_color[labels[i]];
-        }
 
-        // Draw the Bounding box
-        cv::rectangle(frame, faces[i], color, 4);
+        // Draw the Bounding box of the detected face.
+        cv::rectangle(frame, faces[i], color, 3);
 
-        // Calcola la dimensione del testo
+        // Font parameters
+        int font_face = cv::FONT_HERSHEY_SIMPLEX;
+        double font_scale = 0.7;  
+        int thickness = 1;
+
+        // Calculating size of the text.
         int baseline = 0;
-        cv::Size textSize = cv::getTextSize(labels[i], cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+        cv::Size text_size = cv::getTextSize(labels[i], font_face, font_scale, thickness, &baseline);
 
-        // Posizione del testo (sopra al box)
-        cv::Point textOrg(faces[i].x, faces[i].y - 5);
+        // Position of the text.
+        cv::Point text_org(faces[i].x, faces[i].y - 5);
 
-        // Rettangolo pieno come sfondo del testo
+        // Background rectangle for text label.
         cv::rectangle(frame,
-                      textOrg + cv::Point(0, baseline), 
-                      textOrg + cv::Point(textSize.width, -textSize.height),
+                      text_org + cv::Point(0, baseline),
+                      text_org + cv::Point(text_size.width, -text_size.height),
                       color, cv::FILLED);
 
-        // Scrivi il testo in bianco sopra il rettangolo
-        cv::putText(frame, labels[i], textOrg,
-                    cv::FONT_HERSHEY_SIMPLEX,
-                    0.5, // font scale
-                    cv::Scalar(255, 255, 255), // bianco
-                    1,
-                    cv::LINE_AA);
+        // If color is yellow or white change the text color into balck.
+        cv::Scalar text_color = cv::Scalar(255, 255, 255);
+        if (labels[i] == "neutral" || labels[i] == "disgust")
+            text_color = cv::Scalar(0, 0, 0);
+
+        // Draw the text over the colored backround.
+        cv::putText(frame, labels[i], text_org,
+                    font_face, font_scale, text_color, thickness, cv::LINE_AA);
     }
 }
-//######TODO DA CONTROLLLARE ANCHE SE NON LA USIAMO PIU ho cambiato una roba si può anche rimuovere potenzialmente
+
+
 std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame){
 
         cv::Mat frame_gray;
