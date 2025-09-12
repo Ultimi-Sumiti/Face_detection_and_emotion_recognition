@@ -4,9 +4,13 @@
 #include <ostream>
 #include <sstream>
 #include <numeric>
+#include <filesystem>
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
 
+
+
+namespace fs = std::filesystem;
 
 // -------------- MEMBER FUNCTIONS --------------
 // This member function compute the IOUs of the detected faces.
@@ -50,6 +54,18 @@ void PerformanceMetrics::print_metrics(std::string filename){
     {
         std::cerr << "Impossibile to open the file\n";
     }
+}
+
+
+void PerformanceMetrics::clean_metrics(){
+        try {
+            // The remove function returns true if a file was deleted, false otherwise
+            fs::remove("metrics.txt");
+        } catch (const fs::filesystem_error &e) {
+            // This catch block handles errors like permission issues
+            std::cerr << "Error deleting file: " << e.what() << std::endl;
+            return;
+        }
 }
 
 // Function to compute the mean over IOUs (MIOU).

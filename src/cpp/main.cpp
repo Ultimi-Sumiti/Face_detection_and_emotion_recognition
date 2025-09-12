@@ -145,6 +145,9 @@ int main(int argc, char* argv[]) {
         // Store metrics in file.
         labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
         PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect);
+        if(itr == 0){
+            pm.clean_metrics();
+        }
         pm.print_metrics(imgs_paths[itr]);
 
         // Remove cropped

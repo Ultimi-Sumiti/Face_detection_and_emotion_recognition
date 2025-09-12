@@ -106,7 +106,6 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
             true              // outputRejectLevels true
         );
 
-
         //std::cout << "Found " << faces.size() << " faces." << std::endl;
         // Loop through each detected face.
         for(int j = 0; j < faces.size(); j++){
@@ -148,43 +147,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
     //printRectDetails(best_detections);
     //std::cout<<std::endl;
 
-    
-    /*
-    // Folder path in which will be saved the images.
-    std::string folder_path_cropped_imgs = "../cropped_imgs/";
-    // Vector of cropped images and vector of bounding boxes.
-    std::vector<cv::Mat>  cropped_imgs; 
-
-    for (size_t i = 0; i < faces.size(); i++){
-
-        // Cropping the detected faces.
-        cv::Mat faceROI = frame(faces[i]);
-        cropped_imgs.push_back(faceROI.clone());
-        // Saving the cropped images.
-        cv::imwrite(folder_path_cropped_imgs + "cut_" + std::to_string(i)+".png", cropped_imgs[i]);        
-    }*/
-
-    // Draw the box over the detection.
-    /*for (int i = 0; i < best_detections.size(); i++){
-        cv::rectangle(frame, best_detections[i], cv::Scalar(255, 0, 255), 4);      
-    }*/
-    
-    // Show the images detected.
-    /*
-    double scale = 0.5;
-    cv::resize(frame, frame, cv::Size(), scale, scale);
-    cv::imshow("Window", frame);
-    cv::waitKey(0);*/
-
-    /*
-    for (size_t i = 0; i < cropped_imgs.size(); i++){
-
-        std::string window_name = "Window " + std::to_string(i);
-        cv::imshow(window_name, cropped_imgs[i]);
-    }
-
-    cv::waitKey(0);
-    */
+   
    return best_detections;
 }
 
