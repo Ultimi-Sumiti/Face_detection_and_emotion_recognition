@@ -5,4 +5,6 @@ sender.cpp
 *.out
 .vscode
 build
-cropped_imgs/*.png
+output/cropped_imgs/*.png
+output/cropped_imgs/*.jpg
+output/detections/*.jpg
