@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------- FACE DETECTION --------------------------------------
     
     // Define the FaceDetector passing it the path of the classifier to load.
-    FaceDetector detector;    
+    FaceDetector detector;
     try {
         detector = FaceDetector(classifiers_paths);
     } catch(const std::runtime_error& e) {
@@ -82,7 +82,6 @@ int main(int argc, char* argv[]) {
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
         // Crop images and save it in a vector.
         std::vector<std::string> cropped_paths = crop_images(img, faces);
-
         
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
         // Signal (to Python)
@@ -151,11 +150,3 @@ int main(int argc, char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-
-
-
-
-
-
-   
