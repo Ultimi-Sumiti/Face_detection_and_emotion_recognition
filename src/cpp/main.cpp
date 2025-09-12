@@ -12,24 +12,28 @@
 
 // Function used to run the emotion recognition model (in Python).
 void run_emotion_rec() {
-    int ret = system("python3 ../python/emotion_classifier.py 2>../recognition_output.txt");
+    int ret = system("python3 ../src/python/emotion_classifier.py 2>../recognition_output.txt");
 }
 
 
 const std::vector<std::string> classifiers_paths = {
-    "../classifiers/haarcascade_frontalface_alt_tree.xml",
     "../classifiers/haarcascade_frontalface_alt.xml",
-    "../classifiers/haarcascade_frontalface_alt2.xml",
+    "../classifiers/haarcascade_frontalface_alt_tree.xml",
     "../classifiers/haarcascade_frontalface_default.xml",
+    "../classifiers/haarcascade_frontalface_alt2.xml",
     "../classifiers/haarcascade_profileface.xml",
 };
 
-
-const std::string detections_path = "../detections/";
+// Folder path in which will be saved the images.
+const std::string folder_path_cropped_imgs = "../output/cropped_imgs/";
+const std::string detections_path = "../output/detections/";
 const std::string image_extension = ".jpg";
 
 
 int main(int argc, char* argv[]) {
+
+    // Clean all images in the output dir from previous run.
+    remove_images(get_all_filenames(detections_path));
 
     // Create fifo files for Inter Process Communication (CPP, Python).
     fifo_creation("cpp_to_py.fifo");
@@ -78,10 +82,11 @@ int main(int argc, char* argv[]) {
         }
         
         // Detect and save the faces in a specific folder.
-        std::vector<cv::Rect> faces = detector.face_detect(img);
+        //std::vector<cv::Rect> faces = detector.face_detect(img);
+        std::vector<cv::Rect> faces = detector.vj_detect(img);
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
         // Crop images and save it in a vector.
-        std::vector<std::string> cropped_paths = crop_images(img, faces);
+        std::vector<std::string> cropped_paths = crop_images(img, faces, folder_path_cropped_imgs);
         
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
         // Signal (to Python).
@@ -89,7 +94,7 @@ int main(int argc, char* argv[]) {
         std::ofstream to_server("cpp_to_py.fifo");
         
         if(faces.empty()){
-            std::cout <<"No faces are detected, the program terminates\n";
+            std::cout <<"No faces are detected, going to next image\n";
             // Singal (to Python) for closing its pipeline. 
             to_server << "continue" << std::endl; 
             // Go to next iteration (next image).
@@ -101,7 +106,7 @@ int main(int argc, char* argv[]) {
         // **** Python program is currently detecting *****
 
         // Waiting (from Python)
-        std::cout << "In attesa della risposta da Python...\n";
+        std::cout << "Waiting Python Response...\n";
         std::ifstream from_server("py_to_cpp.fifo");
         std::string line;
         std::vector<std::string> labels;

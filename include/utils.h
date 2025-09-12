@@ -24,7 +24,7 @@ std::vector<std::string> get_all_filenames(const std::string& dir_path);
 std::vector<std::vector<float>> parse_labels(const std::string& filename);
 
 // Function to crop images, save it in a specific folder and returns the paths of saving
-std::vector<std::string> crop_images(cv::Mat img , std::vector<cv::Rect> faces);
+std::vector<std::string> crop_images(cv::Mat img , std::vector<cv::Rect> faces, const std::string& folder_path);
 
 // Function to remove imgs/files from a certain vector of paths
 void remove_images(const std::vector<std::string>& cropped_paths);

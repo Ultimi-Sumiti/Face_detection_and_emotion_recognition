@@ -98,9 +98,7 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename){
     return faces;
 }
 
-std::vector<std::string> crop_images(cv::Mat img, std::vector<cv::Rect> faces) {
-    // Folder path in which will be saved the images.
-    std::string folder_path_cropped_imgs = "../cropped_imgs/";
+std::vector<std::string> crop_images(cv::Mat img, std::vector<cv::Rect> faces, const std::string& folder_path) {
     // Vector of paths to return 
     std::vector<std::string> cropped_paths(faces.size());
 
@@ -108,7 +106,7 @@ std::vector<std::string> crop_images(cv::Mat img, std::vector<cv::Rect> faces) {
         // Cropping the detected faces.
         cv::Mat faceROI = img(faces[i]);
         // Saving the cropped images.
-        std::string path = folder_path_cropped_imgs + "cut_" + std::to_string(i) + ".png";
+        std::string path = folder_path + "cut_" + std::to_string(i) + ".png";
         cv::imwrite(path,faceROI);
         cropped_paths[i] = path;
     }

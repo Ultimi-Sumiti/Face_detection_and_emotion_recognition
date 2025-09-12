@@ -16,7 +16,7 @@ add_library(CVFinal
     )
 
 add_executable(out
-    src/main.cpp
+    src/cpp/main.cpp
     )
 
 target_link_libraries(out CVFinal)
