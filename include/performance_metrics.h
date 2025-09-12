@@ -2,6 +2,7 @@
 #define PERFORMANCE_METRICS_H
 
 #include <iostream>
+#include <ostream>
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
@@ -21,8 +22,12 @@ class PerformanceMetrics{
         // CONSTRUCTORS:
 
         // Main constructor: initializes both the detected faces positions and label faces positions.
-        PerformanceMetrics(const std::vector<cv::Rect>& detected_faces, const std::vector<cv::Rect>& face_labels) : 
-             detected_faces(detected_faces),  face_labels(face_labels){}
+        PerformanceMetrics(
+                const std::vector<cv::Rect>& detected_faces,
+                const std::vector<cv::Rect>& face_labels,
+                const std::string& out_file
+                ) : 
+            detected_faces(detected_faces), face_labels(face_labels), metrics_file_path(out_file){}
 
         //MEMBER FUNCTIONS:
 
@@ -44,6 +49,9 @@ class PerformanceMetrics{
         // Vectors in which memorize the coordinate of the read values from the label txt file.
         std::vector<cv::Rect> detected_faces;
         std::vector<cv::Rect> face_labels;
+
+        std::string metrics_file_path;
+
 
 };
 

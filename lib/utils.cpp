@@ -1,24 +1,21 @@
 #include <iostream>
 #include <unistd.h>
 #include <fstream>
-#include <sstream>
 #include <dirent.h>
-#include <numeric>
 #include <sys/stat.h>
 #include <filesystem>
+#include <opencv2/imgcodecs.hpp>
 
 #include "../include/utils.h"
-#include <filesystem>
-#include "../include/performance_metrics.h"
 
 namespace fs = std::filesystem;
 
-void parse_command_line(
+int parse_command_line(
         int argc,
         char **argv,
         std::string& imgs_dir_path,
         std::string& labels_dir_path
-) {
+        ) {
     int opt;
     while ((opt = getopt(argc, argv, "i:l:")) != -1) {
         switch (opt) {
@@ -29,14 +26,11 @@ void parse_command_line(
                 labels_dir_path = optarg;
                 break;
             case '?':
-                std::cerr << "Usage: " << argv[0] 
-                    << " -i <path> -l <path>\n"
-                    << "  Where:\n"
-                    << "    -i is the input image directory path\n"
-                    << "    -l is the label directory path (OPTIONAL)\n";
+                return 1;
                 break;
         }
     }
+    return 0;
 }
 
 std::vector<std::string> get_all_filenames(const std::string& dir_path) {
@@ -127,17 +121,9 @@ void remove_images(const std::vector<std::string>& cropped_paths){
     }
 }
     
-void fifo_creation(const std::string& fifo_name) {
-    if (access(fifo_name.c_str(), F_OK) != 0) { 
-
-        // If fifo doesn't exist.
-        if (mkfifo(fifo_name.c_str(), 0666) == -1)
-            // If creation doesn't work
-            std::cerr << "Error in the creation of "
-                << fifo_name << ": "
-                << std::strerror(errno) << std::endl;
-        else
-            std::cout << "Creation of the fifo: " << fifo_name << std::endl;
-
-    }
+int fifo_creation(const std::string& fifo_name) {
+    // Check if it already exists.
+    if (!access(fifo_name.c_str(), F_OK)) return 0;
+    // Try to create the fifo.
+    return mkfifo(fifo_name.c_str(), 0666);
 }

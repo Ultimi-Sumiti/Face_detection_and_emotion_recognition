@@ -2,10 +2,9 @@
 #include <unistd.h>
 #include <fstream>
 #include <ostream>
-#include <sstream>
 #include <numeric>
 #include <filesystem>
-#include "../include/utils.h"
+
 #include "../include/performance_metrics.h"
 
 
@@ -32,9 +31,8 @@ std::vector<float> PerformanceMetrics::get_label_IOUs(){
 // Function to write in a file and computing in terminal the metrics for the scenepath.
 void PerformanceMetrics::print_metrics(std::string filename){
     // Print in a file and in the terminal
-    std::ofstream outfile("metrics.txt", std::ios::app);
-    if (outfile.is_open())
-    {
+    std::ofstream outfile(metrics_file_path, std::ios::app);
+    if (outfile.is_open()) {
         //std::cout <<  path_true_labels << "Metrics : \n\n";
         //outfile <<  path_true_labels << " Metrics : \n";
         if(filename != ""){
@@ -58,14 +56,14 @@ void PerformanceMetrics::print_metrics(std::string filename){
 
 
 void PerformanceMetrics::clean_metrics(){
-        try {
-            // The remove function returns true if a file was deleted, false otherwise
-            fs::remove("metrics.txt");
-        } catch (const fs::filesystem_error &e) {
-            // This catch block handles errors like permission issues
-            std::cerr << "Error deleting file: " << e.what() << std::endl;
-            return;
-        }
+    try {
+        // The remove function returns true if a file was deleted, false otherwise
+        fs::remove(metrics_file_path);
+    } catch (const fs::filesystem_error &e) {
+        // This catch block handles errors like permission issues
+        std::cerr << "Error deleting file: " << e.what() << std::endl;
+        return;
+    }
 }
 
 // Function to compute the mean over IOUs (MIOU).
