@@ -1,15 +1,7 @@
 #ifndef PERFORMANCE_METRICS_H
 #define PERFORMANCE_METRICS_H
 
-#include <iostream>
-#include <ostream>
-#include <unistd.h>
-#include <fstream>
-#include <sstream>
-#include <numeric>
-#include "../include/utils.h"
-#include "opencv2/core/types.hpp"
-
+#include <opencv2/core/types.hpp>
 
 /*
     This class relize the purpose of summing up all the performance metrics functions, data and 
@@ -59,7 +51,5 @@ class PerformanceMetrics{
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
 float compute_IOU(cv::Rect& box1, cv::Rect& box2);
-
-
 
 #endif

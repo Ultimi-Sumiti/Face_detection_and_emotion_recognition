@@ -1,3 +1,5 @@
+#include "../include/utils.h"
+
 #include <iostream>
 #include <unistd.h>
 #include <fstream>
@@ -5,8 +7,6 @@
 #include <sys/stat.h>
 #include <filesystem>
 #include <opencv2/imgcodecs.hpp>
-
-#include "../include/utils.h"
 
 namespace fs = std::filesystem;
 

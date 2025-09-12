@@ -1,10 +1,17 @@
 #include "../include/face_detector.h"
 
+#include <iostream>
+#include <opencv2/imgproc.hpp>
+
+#include "../include/utils.h"
+
+
 //-------------- MEMBER FUNCTIONS --------------
-void FaceDetector::draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string> &labels)
-{
-    for (size_t i = 0; i < faces.size(); i++)
-    {
+void FaceDetector::draw_bbox(
+        cv::Mat frame, std::vector<cv::Rect> faces,
+        const std::vector<std::string> &labels
+) {
+    for (size_t i = 0; i < faces.size(); i++) {
         cv::Scalar color = cv::Scalar(255, 255, 255); // default = white
         if (this->label_color.find(labels[i]) != this->label_color.end())
             color = this->label_color[labels[i]];
@@ -42,23 +49,22 @@ void FaceDetector::draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const s
 }
 
 
-std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame){
+std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame) {
+    cv::Mat frame_gray;
+    // Convert into GRAY the frame passed.
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
+    // Histogram equalization.
+    cv::equalizeHist(frame_gray, frame_gray); 
 
-        cv::Mat frame_gray;
-        // Convert into GRAY the frame passed.
-        cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-        // Histogram equalization.
-        cv::equalizeHist(frame_gray, frame_gray); 
+    // Detect faces on the frame in gray scale.
+    std::vector<cv::Rect> faces;
+    this->f_cascades[0].detectMultiScale(frame_gray, faces);
 
-        // Detect faces on the frame in gray scale.
-        std::vector<cv::Rect> faces;
-        this->f_cascades[0].detectMultiScale(frame_gray, faces);
+    return faces;   
 
-        return faces;   
+}
 
-    }
-
-std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
+std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -214,4 +220,3 @@ std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, i
     }
     return rects_label;
 }
-

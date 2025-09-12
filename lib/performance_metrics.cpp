@@ -1,15 +1,12 @@
-#include <iostream>
-#include <unistd.h>
-#include <fstream>
-#include <ostream>
-#include <numeric>
-#include <filesystem>
-
 #include "../include/performance_metrics.h"
 
-
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <numeric>
 
 namespace fs = std::filesystem;
+
 
 // -------------- MEMBER FUNCTIONS --------------
 // This member function compute the IOUs of the detected faces.
