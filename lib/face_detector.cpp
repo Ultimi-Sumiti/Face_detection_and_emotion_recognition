@@ -1,9 +1,8 @@
 #include "../include/face_detector.h"
 
 //-------------- MEMBER FUNCTIONS --------------
-void FaceDetector:: draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string> &labels)
+void FaceDetector::draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string> &labels)
 {
-    // Draw the box over the detection.
     for (size_t i = 0; i < faces.size(); i++)
     {
         cv::Scalar color = cv::Scalar(255, 255, 255); // default = white
@@ -14,17 +13,29 @@ void FaceDetector:: draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const 
 
         // Draw the Bounding box
         cv::rectangle(frame, faces[i], color, 4);
-        // Draw the corrispective label on the BBox
-        cv::putText(frame, labels[i],
-                    cv::Point(faces[i].x, faces[i].y - 5), // 5 pixels above the top-left
+
+        // Calcola la dimensione del testo
+        int baseline = 0;
+        cv::Size textSize = cv::getTextSize(labels[i], cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+
+        // Posizione del testo (sopra al box)
+        cv::Point textOrg(faces[i].x, faces[i].y - 5);
+
+        // Rettangolo pieno come sfondo del testo
+        cv::rectangle(frame,
+                      textOrg + cv::Point(0, baseline), 
+                      textOrg + cv::Point(textSize.width, -textSize.height),
+                      color, cv::FILLED);
+
+        // Scrivi il testo in bianco sopra il rettangolo
+        cv::putText(frame, labels[i], textOrg,
                     cv::FONT_HERSHEY_SIMPLEX,
                     0.5, // font scale
-                    color,
+                    cv::Scalar(255, 255, 255), // bianco
                     1,
                     cv::LINE_AA);
     }
 }
-
 //######TODO DA CONTROLLLARE ANCHE SE NON LA USIAMO PIU ho cambiato una roba si può anche rimuovere potenzialmente
 std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame){
 

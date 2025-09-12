@@ -14,7 +14,6 @@ class FaceDetector{
     public:
 
     //CONSTRUCTOR
-
         FaceDetector(){}
 
         FaceDetector(const std::vector<std::string> &paths){
@@ -27,6 +26,7 @@ class FaceDetector{
                 }
             }
         }
+        // Copy constructor.
         FaceDetector(const FaceDetector&) = default;
 
     //MEMBER FUNCTIONS
@@ -41,7 +41,6 @@ class FaceDetector{
     private:
 
     // DATA MEMBERS
-
     std::vector<cv::CascadeClassifier> f_cascades;
     std::vector<std::string> cropped_paths;
     

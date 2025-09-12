@@ -12,7 +12,7 @@
 
 // Function used to run the emotion recognition model (in Python).
 void run_emotion_rec() {
-    int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
+    int ret = system("python3 ../python/emotion_classifier.py 2>../recognition_output.txt");
 }
 
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     // Start processing all images.
     for (int itr = 0; itr < imgs_paths.size(); itr++) {
 
-        // Processing the current image
+        // Processing the current image.
         cv::Mat img = cv::imread(imgs_paths[itr]);
         std::cout<<std::endl<< "Analyzing: "<< imgs_paths[itr];
 
@@ -85,13 +85,13 @@ int main(int argc, char* argv[]) {
 
         
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
-        // Signal (to Python)
+        // Signal (to Python).
         std::cout<<"Prima di python\n";   
         std::ofstream to_server("cpp_to_py.fifo");
         
         if(faces.empty()){
             std::cout <<"No faces are detected, the program terminates\n";
-            // Singal (to Python) for closing its pipeline 
+            // Singal (to Python) for closing its pipeline. 
             to_server << "continue" << std::endl; 
             // Go to next iteration (next image).
             continue;
