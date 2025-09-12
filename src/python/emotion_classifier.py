@@ -42,9 +42,13 @@ def main():
             fifo.flush()
             # If nothing is detected the program terminates
             if msg == "exit":
-                return -1
-            if msg == "continue":
+                return
+            elif msg == "continue":
                 continue
+            elif msg == "start":
+                pass # Do nothing.
+            #else: 
+            #    print("PYTHON ERROR! MESSAGE IS", msg) # TODO: Remove this.
                 
         # Load all images in the directory.
         imgs = [
