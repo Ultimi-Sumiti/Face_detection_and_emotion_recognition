@@ -7,7 +7,7 @@ import numpy as np
 print("INFO: Modules loaded.") 
 
 ### PARAMETERS ###
-CHKP_PATH = "../python/model.keras"
+CHKP_PATH = "../python/model_efficientnetB0.keras"
 IMG_SIZE = 224
 CLASSES = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 IMGS_DIR = "../cropped_imgs/"

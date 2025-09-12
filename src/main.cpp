@@ -1,131 +1,78 @@
-#include "opencv2/objdetect.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
-//#include "opencv2/videoio.hpp"
+#include <cstdlib>
 #include <iostream>
-#include <cstdio>  // popen, pclose
 #include <string>
 #include <fstream>
-#include <errno.h>
 #include <unistd.h> 
-#include <thread>
-//#include <Python.h>
+#include <thread> 
 
 #include "../include/utils.h"
 #include "../include/performance_metrics.h"
-#include "face_detector.h"
+#include "../include/face_detector.h"
 
 
-namespace fs = std::filesystem;
-
-void recognition_pipeline_call(){
-        int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
-
+// Function used to run the emotion recognition model (in Python).
+void run_emotion_rec() {
+    int ret = system("python3 ../python/emotion_classifier.py 2>/dev/null");
 }
 
 
 const std::vector<std::string> classifiers_paths = {
-        "../classifiers/haarcascade_frontalface_alt_tree.xml",
-        "../classifiers/haarcascade_frontalface_alt.xml",
-        "../classifiers/haarcascade_frontalface_alt2.xml",
-        "../classifiers/haarcascade_frontalface_default.xml",
-        "../classifiers/haarcascade_profileface.xml",
+    "../classifiers/haarcascade_frontalface_alt_tree.xml",
+    "../classifiers/haarcascade_frontalface_alt.xml",
+    "../classifiers/haarcascade_frontalface_alt2.xml",
+    "../classifiers/haarcascade_frontalface_default.xml",
+    "../classifiers/haarcascade_profileface.xml",
 };
+
+
+const std::string detections_path = "../detections/";
+const std::string image_extension = ".jpg";
+
 
 int main(int argc, char* argv[]) {
 
-    // Creation of the 2 fifo to communicate with the emotion_classifier pipeline
+    // Create fifo files for Inter Process Communication (CPP, Python).
     fifo_creation("cpp_to_py.fifo");
     fifo_creation("py_to_cpp.fifo");
 
-    // Parse command line.
-    std::string input_path{}, file_name{};
-    parse_command_line(argc, argv, input_path, file_name);
+    // Parse command line, get image directory and (optinally) labels directory.
+    std::string imgs_dir_path{}, labels_dir_path{};
+    parse_command_line(argc, argv, imgs_dir_path, labels_dir_path);
         
-    
-    std::vector<std::string> complete_paths;
-    std::vector<std::string> label_paths;
-
-    const std::string image_dir = "images";
-    const std::string label_dir = "labels";
-    const std::string image_extension = ".jpg";
-    const std::string label_extension = ".txt";
-
-
-    if (input_path.empty()) {
+    if (imgs_dir_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
-        return -1;
+        return EXIT_FAILURE;
     }
-
-    if (!file_name.empty()){
-        complete_paths.push_back(input_path + "/" + image_dir + "/"+ file_name + image_extension);
-        label_paths.push_back(input_path + "/" + label_dir + "/"+ file_name + label_extension);
-
-        // Print args found.
-        std::cout << "INPUT FILE PATH " << input_path << "\n";
-        std::cout << "FILE NAME " << file_name << "\n";
-
-    }else{
-
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + image_dir )) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    complete_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
-
-        try {
-            // Create a directory iterator
-            for (const auto& entry : fs::directory_iterator(input_path + "/" + label_dir)) {
-                // Check if the entry is a regular file
-                if (entry.is_regular_file()) {
-                    // Get the path and extract the filename
-                    label_paths.push_back(entry.path().string());
-                    //std::cout<<entry.path().filename().string();
-                }
-            }
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Error accessing directory: " << e.what() << std::endl;
-            return 1;
-        }
-
-    }
+    
+    // Retreive all filenames inside the directories.
+    std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
+    std::vector<std::string> labels_paths{};
+    if (!labels_dir_path.empty())
+        labels_paths = get_all_filenames(labels_dir_path);
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
     
-
     // Define the FaceDetector passing it the path of the classifier to load.
     FaceDetector detector;    
-    try
-    {
+    try {
         detector = FaceDetector(classifiers_paths);
-    }
-    catch(const std::runtime_error& e)
-    {
+    } catch(const std::runtime_error& e) {
         std::cerr << "Exception caught, impossible to upload the cascades: " << e.what() << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
 
-    // Call the python pipeline to classify the faces
-    std::thread emotion_rec_thread = std::thread(recognition_pipeline_call);
+    // Call the python pipeline to classify the faces.
+    std::thread emotion_rec_thread = std::thread(run_emotion_rec);
 
     // Start processing all images.
-    for(const auto& path : complete_paths){
+    for (int itr = 0; itr < imgs_paths.size(); itr++) {
 
         // Processing the current image
-        cv::Mat img = cv::imread(path);
-        std::cout<<std::endl<< "Analyzing: "<<path;
+        cv::Mat img = cv::imread(imgs_paths[itr]);
+        std::cout<<std::endl<< "Analyzing: "<< imgs_paths[itr];
 
-        if(img.empty()){
+        if (img.empty()) {
             std::cerr<<"Error: cannot open image!"<<std::endl;
             continue;
         }
@@ -162,27 +109,33 @@ int main(int argc, char* argv[]) {
 
         // Read all the output stream
         while (std::getline(from_server, line)) {
-            
             std::cout << "Python output: " << line << std::endl;
             labels.push_back(line);
         } 
         from_server.close();
         
         // Draw the detection with the labels on current image.
-        /*
         detector.draw_bbox(img, faces, labels);
-        namedWindow("Window", cv::WINDOW_NORMAL);
-        cv::imshow("Window", img);
-        cv::waitKey(0);
-        */
+
+        // Store the image with boxes drawn.
+        std::string full_detection_path = detections_path + "image_" + std::to_string(itr) + image_extension;
+        if (cv::imwrite(full_detection_path, img))
+            std::cout << "Image: " << full_detection_path << " saved." << std::endl;
+        else
+            std::cerr << "Error: couldn't save " << full_detection_path << " to disk" << std::endl;
         
         //  ------------------------------------ PERFORMANCE METRICS ------------------------------------ 
         // Performance metrics, if necessary.
-        if (!file_name.empty()) {
-            std::vector<cv::Rect> label_rect = compute_rectangles(label_paths.back(), img.cols, img.rows);
-            PerformanceMetrics pm(faces, label_rect);
-            pm.print_metrics();
-        }
+        //if (!file_name.empty()) {
+        //    std::vector<cv::Rect> label_rect = compute_rectangles(labels_paths.back(), img.cols, img.rows);
+        //    PerformanceMetrics pm(faces, label_rect);
+        //    pm.print_metrics();
+        //}
+
+        //draw_bbox(img, faces, labels);
+        //namedWindow("Window", cv::WINDOW_NORMAL);
+        //cv::imshow("Window", img);
+        //cv::waitKey(0);
 
         // Remove cropped
         remove_images(cropped_paths); 
@@ -193,10 +146,10 @@ int main(int argc, char* argv[]) {
     std::ofstream to_server("cpp_to_py.fifo");
     to_server << "exit" << std::endl;
 
-    // Wait the thread ends
+    // Wait the thread ends.
     emotion_rec_thread.join();
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 

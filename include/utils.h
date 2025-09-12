@@ -9,10 +9,16 @@
 #include "opencv2/videoio.hpp"
 
 
-
 // Function used to parse the command line arguments.
-void parse_command_line(int argc, char* argv[], std::string& input_path, 
-        std::string& label_path);
+void parse_command_line(
+        int argc,
+        char* argv[],
+        std::string& imgs_dir_path, 
+        std::string& label_dir_path
+);
+
+// Function used to store all the file names inside 'dir_path' in 'filenames'.
+std::vector<std::string> get_all_filenames(const std::string& dir_path); 
 
 // Function to parse the labels of the positions and emotion from the given textual file.
 std::vector<std::vector<float>> parse_labels(const std::string& filename);
