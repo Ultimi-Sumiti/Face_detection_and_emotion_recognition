@@ -83,7 +83,8 @@ int main(int argc, char* argv[]) {
         
         // Detect and save the faces in a specific folder.
         //std::vector<cv::Rect> faces = detector.face_detect(img);
-        std::vector<cv::Rect> faces = detector.vj_detect(img);
+        std::vector<cv::Rect> labels_rect;
+        std::vector<cv::Rect> faces = detector.face_detect(img);
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
         // Crop images and save it in a vector.
         std::vector<std::string> cropped_paths = crop_images(img, faces, folder_path_cropped_imgs);
@@ -140,6 +141,11 @@ int main(int argc, char* argv[]) {
         //namedWindow("Window", cv::WINDOW_NORMAL);
         //cv::imshow("Window", img);
         //cv::waitKey(0);
+
+        // Store metrics in file.
+        labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+        PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect);
+        pm.print_metrics(imgs_paths[itr]);
 
         // Remove cropped
         remove_images(cropped_paths); 

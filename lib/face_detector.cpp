@@ -59,6 +59,8 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
     // Histogram equalization.
     cv::equalizeHist(frame_gray, frame_gray); 
+    // Computing the area of the frame.
+    int area = frame.rows * frame.cols;
 
     // Detect faces on the frame in gray scale.
     std::vector<cv::Rect> faces;
@@ -72,7 +74,8 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
     std::vector<cv::Rect> filtered_faces; 
     std::vector<cv::Rect> best_detections; 
     int min_score = 1000000;
-    int min_area = frame.rows * frame.cols /100;
+    int min_area = area / 100;
+    int min_side = static_cast<int>(std::sqrt(min_area));
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;
@@ -93,7 +96,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame){
             1.1, // scaleFactor
             5,   // minNeighbors
             0,   // flags
-            cv::Size(70, 70), // minSize
+            cv::Size(min_side, min_side), // minSize
             cv::Size(),       // maxSize
             true              // outputRejectLevels true
         );

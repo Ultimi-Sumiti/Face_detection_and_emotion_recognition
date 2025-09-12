@@ -26,18 +26,22 @@ std::vector<float> PerformanceMetrics::get_label_IOUs(){
 }
 
 // Function to write in a file and computing in terminal the metrics for the scenepath.
-void PerformanceMetrics::print_metrics(){
+void PerformanceMetrics::print_metrics(std::string filename){
     // Print in a file and in the terminal
     std::ofstream outfile("metrics.txt", std::ios::app);
     if (outfile.is_open())
     {
         //std::cout <<  path_true_labels << "Metrics : \n\n";
         //outfile <<  path_true_labels << " Metrics : \n";
-        outfile << "IOUs of labels : \n";
+        if(filename != ""){
+            outfile << "IOUs of labels in image "<< filename << ": \n";
+        }else{
+            outfile << "IOUs of labels: \n";
+        }
         std::vector<float> IOUs =  get_label_IOUs();
         for (int i = 0; i <  face_labels.size(); i++)
         {
-            outfile<< "IOU of box number "<< i << " is: "<< IOUs[i] <<std::endl;
+            outfile<< "    IOU of box number "<< i << " is: "<< IOUs[i] <<std::endl;
         }
         outfile << "\n";
         outfile.close();

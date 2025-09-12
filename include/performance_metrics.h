@@ -33,7 +33,7 @@ class PerformanceMetrics{
         float compute_MIOU();
 
         // Function to write in a file and computing in terminal the metrics for the scenepath.
-        void print_metrics();
+        void print_metrics(std::string file_name = "");
 
     private:
 
