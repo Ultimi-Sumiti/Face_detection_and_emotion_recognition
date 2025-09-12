@@ -1,0 +1,7 @@
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20250912 14:19:50.147134 140524188855232 SymmetricMemory.cpp:41] Destroying Symmetric Memory Allocators

@@ -5,9 +5,9 @@
 #include <unistd.h> 
 #include <thread> 
 
-#include "../include/utils.h"
-#include "../include/performance_metrics.h"
-#include "../include/face_detector.h"
+#include "../../include/utils.h"
+#include "../../include/performance_metrics.h"
+#include "../../include/face_detector.h"
 
 
 // Function used to run the emotion recognition model (in Python).
@@ -17,15 +17,15 @@ void run_emotion_rec() {
 
 
 const std::vector<std::string> classifiers_paths = {
-    "../classifiers/haarcascade_frontalface_alt.xml",
-    "../classifiers/haarcascade_frontalface_alt_tree.xml",
-    "../classifiers/haarcascade_frontalface_default.xml",
-    "../classifiers/haarcascade_frontalface_alt2.xml",
-    "../classifiers/haarcascade_profileface.xml",
+    "../data/haarcascades/haarcascade_frontalface_alt.xml",
+    "../data/haarcascades/haarcascade_frontalface_alt_tree.xml",
+    "../data/haarcascades/haarcascade_frontalface_default.xml",
+    "../data/haarcascades/haarcascade_frontalface_alt2.xml",
+    "../data/haarcascades/haarcascade_profileface.xml",
 };
 
 // Folder path in which will be saved the images.
-const std::string folder_path_cropped_imgs = "../output/cropped_imgs/";
+const std::string folder_path_cropped_imgs = "../tmp/cropped_imgs/";
 const std::string detections_path = "../output/detections/";
 const std::string image_extension = ".jpg";
 
@@ -42,12 +42,12 @@ int main(int argc, char* argv[]) {
     // Parse command line, get image directory and (optinally) labels directory.
     std::string imgs_dir_path{}, labels_dir_path{};
     parse_command_line(argc, argv, imgs_dir_path, labels_dir_path);
-        
+
     if (imgs_dir_path.empty()) {
         std::cerr << "Error in parsing the command line...\n";
         return EXIT_FAILURE;
     }
-    
+
     // Retreive all filenames inside the directories.
     std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
     std::vector<std::string> labels_paths{};
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 
 
     // -------------------------------------- FACE DETECTION --------------------------------------
-    
+
     // Define the FaceDetector passing it the path of the classifier to load.
     FaceDetector detector;
     try {
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
             std::cerr<<"Error: cannot open image!"<<std::endl;
             continue;
         }
-        
+
         // Detect and save the faces in a specific folder.
         //std::vector<cv::Rect> faces = detector.face_detect(img);
         std::vector<cv::Rect> labels_rect;
@@ -88,12 +88,12 @@ int main(int argc, char* argv[]) {
         std::cout<<std::endl<<"Detected: "<< faces.size()<< " faces."<<std::endl;
         // Crop images and save it in a vector.
         std::vector<std::string> cropped_paths = crop_images(img, faces, folder_path_cropped_imgs);
-        
+
         // ------------------------------------ EMOTION RECOGNITION ------------------------------------
         // Signal (to Python).
         std::cout<<"Prima di python\n";   
         std::ofstream to_server("cpp_to_py.fifo");
-        
+
         if(faces.empty()){
             std::cout <<"No faces are detected, going to next image\n";
             // Singal (to Python) for closing its pipeline. 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
             labels.push_back(line);
         } 
         from_server.close();
-        
+
         // Draw the detection with the labels on current image.
         detector.draw_bbox(img, faces, labels);
 
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Image: " << full_detection_path << " saved." << std::endl;
         else
             std::cerr << "Error: couldn't save " << full_detection_path << " to disk" << std::endl;
-        
+
         //  ------------------------------------ PERFORMANCE METRICS ------------------------------------ 
         // Performance metrics, if necessary.
         //if (!file_name.empty()) {
@@ -142,15 +142,15 @@ int main(int argc, char* argv[]) {
         //cv::imshow("Window", img);
         //cv::waitKey(0);
 
-        // Store metrics in file.
-        labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-        PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect);
-        if(itr == 0){
-            pm.clean_metrics();
+        // Compute and store metrics in a file, if necessary.
+        if (!labels_paths.empty()) {
+            labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+            PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect);
+            if (itr == 0) pm.clean_metrics();
+            pm.print_metrics(imgs_paths[itr]);
         }
-        pm.print_metrics(imgs_paths[itr]);
 
-        // Remove cropped
+        // Remove cropped images.
         remove_images(cropped_paths); 
 
     }
