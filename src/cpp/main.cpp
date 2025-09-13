@@ -96,10 +96,11 @@ int main(int argc, char* argv[]) {
 
     // Start processing all images.
     for (int itr = 0; itr < imgs_paths.size(); itr++) {
+        std::cout << std::endl << "ITR: " << itr << std::endl;
 
         // Processing the current image.
         cv::Mat img = cv::imread(imgs_paths[itr]);
-        std::cout<<std::endl<< "Analyzing: "<< imgs_paths[itr];
+        std::cout << "Analyzing: "<< imgs_paths[itr];
 
         if (img.empty()) {
             std::cerr<<"Error: cannot open image!"<<std::endl;
@@ -115,16 +116,9 @@ int main(int argc, char* argv[]) {
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
 
         // -------------------- EMOTION RECOGNITION ---------------------------
-        // Signal (to Python).
-        std::cout<<"Prima di python\n";   
-        std::ofstream to_server(SEND_FIFO);
 
         if(faces.empty()){
-            std::cout <<"No faces are detected, going to next image." << std::endl;
-            // Singal (to Python) for closing its pipeline. 
-            to_server << "continue" << std::endl; 
-            to_server.close();
-            // Go to next iteration (next image).
+            std::cout <<"No faces detected." << std::endl;
 /**/        if (!labels_paths.empty()) { // TODO: modificare sto codice doppio orribile.
                 labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
                 PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect, METRICS_OUT);
@@ -134,7 +128,9 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        to_server << "start" << std::endl;
+        std::cout<<"Prima di python\n";
+        std::ofstream to_server(SEND_FIFO);
+        to_server << "start" << std::flush;
         to_server.close();
 
         // **** Python program is currently detecting *****
@@ -178,7 +174,8 @@ int main(int argc, char* argv[]) {
 
     // Sending exit message to python.
     std::ofstream to_server(SEND_FIFO);
-    to_server << "exit" << std::endl;
+    to_server << "exit" << std::flush;
+    to_server.close();
 
     // Wait the thread ends.
     emotion_rec_thread.join();
