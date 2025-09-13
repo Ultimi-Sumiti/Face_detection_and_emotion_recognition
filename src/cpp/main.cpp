@@ -3,6 +3,7 @@
 #include <fstream>
 #include <thread> 
 #include <vector>
+#include <numeric>
 #include <opencv2/imgcodecs.hpp>
 
 #include "../../include/utils.h"
@@ -95,6 +96,7 @@ int main(int argc, char* argv[]) {
     std::thread emotion_rec_thread = std::thread(run_emotion_rec);
 
     // Start processing all images.
+    std::vector<float> IOUs;
     for (int itr = 0; itr < imgs_paths.size(); itr++) {
         std::cout << std::endl << "ITR: " << itr << std::endl;
 
@@ -115,19 +117,24 @@ int main(int argc, char* argv[]) {
         // Crop images and save it in a vector.
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
 
-        // -------------------- EMOTION RECOGNITION ---------------------------
+        //  ------------------ PERFORMANCE METRICS ----------------------------
 
+        // Compute and store metrics in a file, if necessary.
+
+        if (!labels_paths.empty()) { // TODO: modificare sto codice doppio orribile.
+            labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+            PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect, METRICS_OUT);
+            if (itr == 0) pm.clean_metrics();
+            pm.print_metrics(imgs_paths[itr]);
+            std::vector<float> label_IOUS = pm.get_label_IOUs();
+            IOUs.insert(IOUs.end(), label_IOUS.begin(), label_IOUS.end());
+        }
         if(faces.empty()){
             std::cout <<"No faces detected." << std::endl;
-/**/        if (!labels_paths.empty()) { // TODO: modificare sto codice doppio orribile.
-                labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-                PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect, METRICS_OUT);
-                if (itr == 0) pm.clean_metrics();
-                pm.print_metrics(imgs_paths[itr]);
-            }
             continue;
         }
 
+        // -------------------- EMOTION RECOGNITION ---------------------------
         std::cout<<"Prima di python\n";
         std::ofstream to_server(SEND_FIFO);
         to_server << "start" << std::flush;
@@ -158,16 +165,6 @@ int main(int argc, char* argv[]) {
         else
             std::cerr << "Error: couldn't save " << full_detection_path << " to disk" << std::endl;
 
-        //  ------------------ PERFORMANCE METRICS ----------------------------
-
-        // Compute and store metrics in a file, if necessary.
-        if (!labels_paths.empty()) {
-            labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-            PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect, METRICS_OUT);
-            if (itr == 0) pm.clean_metrics();
-            pm.print_metrics(imgs_paths[itr]);
-        }
-
         // Remove cropped images.
         remove_images(cropped_paths); 
     }
@@ -179,6 +176,9 @@ int main(int argc, char* argv[]) {
 
     // Wait the thread ends.
     emotion_rec_thread.join();
+
+    float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
+    std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
 
     return EXIT_SUCCESS;
 }
