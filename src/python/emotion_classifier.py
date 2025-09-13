@@ -1,5 +1,5 @@
 ############################ Import Modules ##################################
-print("INFO: Loading Keras modules...")
+print("INFO: [Python] Loading Keras modules...")
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -48,21 +48,20 @@ def class_idx(model, img_path):
 
 
 def main():
-    print("INFO: Loading pre-trained model...")
+    print("INFO: [Python] Loading pre-trained model...")
     model = load_model(CHKP_PATH)
-    print("INFO: Pre-trained model loaded.")
+    print("INFO: [Python] Pre-trained model loaded.")
 
     # Manage inter process communication.
     while True: # Quit when the cpp process send an exit message.
 
         # Waiting the signal from image detection.
-        print("Python: waiting c++ instructions.")
+        #print("Python: waiting c++ instructions.") # TODO: debug comment.
         with open(RECEIVE_FIFO, "r") as fifo:
 
             # Read the message.
             msg = fifo.readline()
-            print(f"[Python] Recived from C++: {msg}")
-            #fifo.flush()
+            #print(f"[Python] Recived from C++: {msg}") # TODO: debug comment.
 
             if msg == "exit":
                 return
@@ -79,12 +78,14 @@ def main():
         ]
 
         # Classify each image and send the results.
-        print("Python: sending classes.")
+        #print("Python: sending classes.") # TODO: debug comment.
+        print("INFO: [Python] Classifing faces...")
         with open(SEND_FIFO, "w") as fifo:
             for img in imgs:
                 idx = class_idx(model, img)
                 fifo.write(f"{CLASSES[idx]}\n")
                 fifo.flush()
   
+
 if __name__ == "__main__":
     main()
