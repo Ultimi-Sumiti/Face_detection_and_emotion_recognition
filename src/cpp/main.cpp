@@ -16,7 +16,7 @@ const std::vector<std::string> HAARCASCADES_PATHS = {
     "../data/haarcascades/haarcascade_frontalface_alt.xml",
     //"../data/haarcascades/haarcascade_frontalface_alt_tree.xml",
     //"../data/haarcascades/haarcascade_frontalface_default.xml",
-    //"../data/haarcascades/haarcascade_frontalface_alt2.xml",
+    "../data/haarcascades/haarcascade_frontalface_alt2.xml",
     //"../data/haarcascades/haarcascade_profileface.xml",
 };
 
@@ -103,6 +103,9 @@ int main(int argc, char* argv[]) {
     // Store IOU of each image (if necessary).
     std::vector<float> IOUs; 
 
+    // This object hold all the functionalities for performance metrics.
+    PerformanceMetrics pm = PerformanceMetrics(METRICS_OUT);
+
     // Process all images.
     for (int itr = 0; itr < imgs_paths.size(); itr++) {
         std::cout << "\n### ITR: " << itr << " ###"<< std::endl;
@@ -129,9 +132,10 @@ int main(int argc, char* argv[]) {
 
         // Compute and store metrics in a file, if necessary.
 
-        if (!labels_paths.empty()) { // TODO: modificare sto codice doppio orribile.
+        if (!labels_paths.empty()) { 
             labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-            PerformanceMetrics pm = PerformanceMetrics(faces, labels_rect, METRICS_OUT);
+            pm.set_detected_faces(faces);
+            pm.set_face_labels(labels_rect);
             if (itr == 0) pm.clean_metrics();
             pm.print_metrics(imgs_paths[itr]);
             std::vector<float> label_IOUS = pm.get_label_IOUs();
@@ -182,6 +186,7 @@ int main(int argc, char* argv[]) {
     emotion_rec_thread.join();
 
     if (!labels_paths.empty()) {
+        //std::cout<<"size: "<< IOUs.size();
         float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
         std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
     }

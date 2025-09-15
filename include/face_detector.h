@@ -9,6 +9,8 @@
 #include <opencv2/core/mat.hpp>
 
 
+const std::vector<int> threshold = {100, 55};
+
 class FaceDetector{
 
     public:

@@ -21,7 +21,14 @@ class PerformanceMetrics{
                 ) : 
             detected_faces(detected_faces), face_labels(face_labels), metrics_file_path(out_file){}
 
+        // Empty constructor.
+        PerformanceMetrics(const std::string& out_file) : metrics_file_path(out_file), face_labels({}), 
+            detected_faces({}){}
+
         //MEMBER FUNCTIONS:
+        // Setter.
+        void set_detected_faces(std::vector<cv::Rect>& detections);
+        void set_face_labels(std::vector<cv::Rect>& labels);
 
         // This member function compute the IOUs of the detected faces.
         std::vector<float> get_label_IOUs();

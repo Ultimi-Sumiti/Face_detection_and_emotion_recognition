@@ -4,6 +4,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "../include/utils.h"
+#include "../include/performance_metrics.h"
 
 
 //-------------- MEMBER FUNCTIONS --------------
@@ -64,6 +65,20 @@ std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame) {
 
 }
 
+bool check_boxes(const std::vector<cv::Rect>& boxes, cv::Rect& rect){
+    cv::Rect box;
+    cv::Rect intersect;
+    for(int i = 0; i < boxes.size(); i++){
+        // Compute intersection box between detected box and previous detections.
+        intersect = boxes[i] & rect;
+        box = boxes[i];
+        if(compute_IOU(intersect, rect) > 0.3|| compute_IOU(intersect, box) > 0.3){
+            return false;
+        }
+    }
+    return true;
+}
+
 std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
@@ -94,11 +109,12 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
     cv::Rect img_rect = cv::Rect(0,0, frame.cols,frame.rows);
     float min_blur = calculateBlurScore(frame, img_rect) / 2;
     int min_score = min_blur * min_area;
-    int min_weight = 80;
+    //int min_weight = 80;
 
     // Checking all possible faces cascades. 
+    //std::cout<<"cascades: "<<this->f_cascades.size();
     for(int i = 0; i < this->f_cascades.size(); i++){
-        // std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
+        //std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
         faces.clear();
         this->f_cascades[i].detectMultiScale(
             frame_gray,
@@ -106,7 +122,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
             rejectLevels,
             levelWeights,
             1.02, // scaleFactor
-            10,   // minNeighbors
+            25,   // minNeighbors
             0,   // flags
             cv::Size(min_side, min_side), // minSize
             cv::Size(),       // maxSize
@@ -119,9 +135,9 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
             // Print the confidence score for the corresponding face.
             blur_score = calculateBlurScore(frame, faces[j]);
             score =  blur_score * faces[j].area();
-            // std::cout << std::endl << "Face " << j << " -> Score: " << levelWeights[j] << std::endl;
+            //std::cout << std::endl << "Face " << j << " -> Score: " << levelWeights[j] << std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score >= min_score) && levelWeights[j] > min_weight){
+            if((score >= min_score) && levelWeights[j] > threshold[i] && check_boxes(filtered_faces, faces[j])){
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }

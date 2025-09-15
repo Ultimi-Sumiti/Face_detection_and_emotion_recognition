@@ -82,6 +82,15 @@ float PerformanceMetrics::compute_MIOU(){
 }
 
 
+void PerformanceMetrics::set_detected_faces(std::vector<cv::Rect>& detections){
+    detected_faces = detections;
+}
+
+void PerformanceMetrics::set_face_labels(std::vector<cv::Rect>& labels){
+    face_labels = labels;
+}
+
+
 // -------------- HELPER FUNCTIONS --------------
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
