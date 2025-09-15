@@ -12,9 +12,11 @@ void FaceDetector::draw_bbox(
         const std::vector<std::string> &labels
 ) {
     for (size_t i = 0; i < faces.size(); i++) {
+        std::string label = labels[i].substr(0, labels[i].find(" "));
+
         cv::Scalar color = cv::Scalar(255, 255, 255); // default = white
-        if (this->label_color.find(labels[i]) != this->label_color.end())
-            color = this->label_color[labels[i]];
+        if (this->label_color.find(label) != this->label_color.end())
+            color = this->label_color[label];
 
         // Draw the Bounding box of the detected face.
         cv::rectangle(frame, faces[i], color, 3);
@@ -39,7 +41,7 @@ void FaceDetector::draw_bbox(
 
         // If color is yellow or white change the text color into balck.
         cv::Scalar text_color = cv::Scalar(255, 255, 255);
-        if (labels[i] == "neutral" || labels[i] == "disgust")
+        if (label == "neutral" || label == "disgust")
             text_color = cv::Scalar(0, 0, 0);
 
         // Draw the text over the colored backround.
