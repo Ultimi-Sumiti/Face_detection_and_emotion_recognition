@@ -43,8 +43,9 @@ def class_idx(model, img_path):
     
     # Get class index.
     idx = np.argmax(predictions, axis=1)[0]
+    val = np.max(predictions, axis=1)[0]
 
-    return idx
+    return idx, val.astype(float)
 
 
 def main():
@@ -82,8 +83,8 @@ def main():
         print("INFO: [Python] Classifing faces...")
         with open(SEND_FIFO, "w") as fifo:
             for img in imgs:
-                idx = class_idx(model, img)
-                fifo.write(f"{CLASSES[idx]}\n")
+                idx, val = class_idx(model, img)
+                fifo.write(f"{CLASSES[idx]} {val:.2f}\n")
                 fifo.flush()
   
 
