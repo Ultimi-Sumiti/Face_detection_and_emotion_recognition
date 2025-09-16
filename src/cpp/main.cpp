@@ -13,6 +13,11 @@
 #include "../../include/performance_metrics.h"
 #include "../../include/face_detector.h"
 
+#define RESET   "\033[0m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define RED "\033[31m"
+#define BLUE "\033[34m"
 
 // Haarcascades that can be used for face detection.
 const std::vector<std::string> HAARCASCADES_PATHS = {
@@ -75,8 +80,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (!webcam && imgs_dir_path.empty() && video.empty()) {
-        std::cerr << "ERROR: You must either set webcam or provide a "
-            "video file or provide an input images directory" << std::endl;
+        std::cerr << RED <<"ERROR: You must either set webcam or provide a "
+            "video file or provide an input images directory" << RESET << std::endl;
         std::cout << help_msg << std::endl;
         return EXIT_FAILURE;
     }
@@ -102,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Create fifo files used for Inter Process Communication (CPP <-> Python).
     if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
-        std::cerr << "ERROR: Cannot create fifo files... aborting" << std::endl;
+        std::cerr << RED << "ERROR: Cannot create fifo files... aborting" << RESET <<std::endl;
         return EXIT_FAILURE;
     }
 
@@ -114,7 +119,7 @@ int main(int argc, char* argv[]) {
 
         capture.open(0);
         if (!capture.isOpened()) {
-            std::cerr << "ERROR: Couldn't open webcam." << std::endl;
+            std::cerr << RED << "ERROR: Couldn't open webcam." << RESET << std::endl;
             return EXIT_FAILURE;
         }
 
@@ -122,8 +127,8 @@ int main(int argc, char* argv[]) {
 
         capture.open(video);
         if (!capture.isOpened()) {
-            std::cerr << "ERROR: Couldn't open video '" <<  video
-                      << "'." << std::endl;
+            std::cerr << RED << "ERROR: Couldn't open video '" <<  video
+                      << "'." << RESET << std::endl;
             return EXIT_FAILURE;
         }
 
@@ -139,7 +144,7 @@ int main(int argc, char* argv[]) {
         );
 
         if (!writer.isOpened()) {
-            std::cerr << "Could not open the output video file for write" << std::endl;
+            std::cerr << RED << "Could not open the output video file for write" << RESET <<std::endl;
             return EXIT_FAILURE;
         }
     }
@@ -149,7 +154,7 @@ int main(int argc, char* argv[]) {
     try {
         detector = FaceDetector(HAARCASCADES_PATHS);
     } catch(const std::runtime_error& e) {
-        std::cerr << "Exception caught, impossible to upload the cascades: " 
+        std::cerr << RED << "Exception caught, impossible to upload the cascades: " << RESET 
                   << e.what() << std::endl;
         return EXIT_FAILURE;
     }
@@ -170,7 +175,7 @@ int main(int argc, char* argv[]) {
     int correct_detection = 0;
     int detection_count = 0;
     for (int itr = 0; true; itr++) {
-        std::cout << "\n### ITR: " << itr << " ###"<< std::endl;
+        std::cout << GREEN << "\n### ITR: " << itr << " ###" << RESET << std::endl;
 
         // ---------------------- FACE DETECTION ------------------------------
         // Open input image.
@@ -184,7 +189,7 @@ int main(int argc, char* argv[]) {
         } else if (itr < imgs_paths.size()) {
             img = cv::imread(imgs_paths[itr]);
             if (img.empty()) {
-                std::cerr << "ERROR: Cannot open " << imgs_paths[itr] << std::endl;
+                std::cerr << RED << "ERROR: Cannot open " << imgs_paths[itr] << RESET << std::endl;
                 continue;
             }
         }
@@ -266,7 +271,7 @@ int main(int argc, char* argv[]) {
             if (cv::imwrite(out_path, img))
                 std::cout << "INFO: '" << out_path << "' saved." << std::endl;
             else
-                std::cerr << "ERROR: Couldn't save '" << out_path << "' to disk." << std::endl;
+                std::cerr << RED << "ERROR: Couldn't save '" << out_path << "' to disk." << RESET << std::endl;
 
         }
 
@@ -285,9 +290,9 @@ int main(int argc, char* argv[]) {
     if (!labels_paths.empty()) {
         //std::cout<<"size: "<< IOUs.size();
         float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
-        std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
+        std::cout<<std::endl<< BLUE <<"The avarage IOU obtained with current detector configuration: "<< RESET << avg_IOU<<std::endl;
         float accuracy = float(correct_detection) / detection_count;
-        std::cout<<std::endl<<"The total accuracy over the dataset is: "<< accuracy<<std::endl;
+        std::cout<< BLUE << "The total accuracy over the dataset is: "<< RESET <<accuracy<<std::endl;
     }
 
     return EXIT_SUCCESS;

@@ -1,12 +1,15 @@
+RESET = "\033[0m"
+YELLOW = "\033[33m"
+
 ############################ Import Modules ##################################
-print("INFO: [Python] Loading Keras modules...")
+print("INFO:" + YELLOW +  "[Python] Loading Keras modules..." + RESET)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from keras.saving import load_model
 from keras.preprocessing import image
 import numpy as np
-print("INFO: Modules loaded.") 
+print("INFO:"+ YELLOW +  "Modules loaded." + RESET) 
 
 
 ############################ Define Params ####################################
@@ -49,9 +52,9 @@ def class_idx(model, img_path):
 
 
 def main():
-    print("INFO: [Python] Loading pre-trained model...")
+    print("INFO:"+ YELLOW + "[Python] Loading pre-trained model..." + RESET)
     model = load_model(CHKP_PATH)
-    print("INFO: [Python] Pre-trained model loaded.")
+    print("INFO:"+ YELLOW +  "[Python] Pre-trained model loaded." + RESET)
 
     # Manage inter process communication.
     while True: # Quit when the cpp process send an exit message.
@@ -80,7 +83,7 @@ def main():
 
         # Classify each image and send the results.
         #print("Python: sending classes.") # TODO: debug comment.
-        print("INFO: [Python] Classifing faces...")
+        print("INFO:" + YELLOW + "[Python] Classifing faces..." + RESET)
         with open(SEND_FIFO, "w") as fifo:
             for img in imgs:
                 idx, val = class_idx(model, img)
