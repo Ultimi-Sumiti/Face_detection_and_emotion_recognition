@@ -1,15 +1,16 @@
-RESET = "\033[0m"
+# Output colors.
 YELLOW = "\033[33m"
+RESET  = "\033[0m"
 
 ############################ Import Modules ##################################
-print("INFO:" + YELLOW +  "[Python] Loading Keras modules..." + RESET)
+print("INFO:" + YELLOW + "[Python] Loading Keras modules..." + RESET)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from keras.saving import load_model
 from keras.preprocessing import image
 import numpy as np
-print("INFO:"+ YELLOW +  "Modules loaded." + RESET) 
+print("INFO:" + YELLOW + "Modules loaded." + RESET) 
 
 
 ############################ Define Params ####################################
@@ -31,6 +32,7 @@ CROPPED_PATH = "../tmp/cropped_imgs/"
 # Fifo files paths for inter process communication.
 RECEIVE_FIFO = "../tmp/cpp_to_py.fifo"
 SEND_FIFO = "../tmp/py_to_cpp.fifo"
+
 ##############################################################################
 
 
@@ -52,9 +54,9 @@ def class_idx(model, img_path):
 
 
 def main():
-    print("INFO:"+ YELLOW + "[Python] Loading pre-trained model..." + RESET)
+    print("INFO:" + YELLOW + "[Python] Loading pre-trained model..." + RESET)
     model = load_model(CHKP_PATH)
-    print("INFO:"+ YELLOW +  "[Python] Pre-trained model loaded." + RESET)
+    print("INFO:" + YELLOW + "[Python] Pre-trained model loaded." + RESET)
 
     # Manage inter process communication.
     while True: # Quit when the cpp process send an exit message.

@@ -3,7 +3,6 @@
 #include <fstream>
 #include <thread> 
 #include <vector>
-#include <numeric>
 #include <algorithm>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
@@ -16,8 +15,9 @@
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 #define YELLOW  "\033[33m"
-#define RED "\033[31m"
-#define BLUE "\033[34m"
+#define RED     "\033[31m"
+#define BLUE    "\033[34m"
+#define INV     "\033[7m"
 
 // Haarcascades that can be used for face detection.
 const std::vector<std::string> HAARCASCADES_PATHS = {
@@ -56,7 +56,7 @@ void run_emotion_rec() {
 
 int main(int argc, char* argv[]) {
 
-    // Parse command line, get image directory and (optinally) labels directory.
+    // Parse command line options.
     std::string imgs_dir_path{}, labels_dir_path{}, video{};
     int webcam = 0;
 
@@ -69,84 +69,87 @@ int main(int argc, char* argv[]) {
             webcam
     );
 
-    //std::cout << "imgs dir = " << imgs_dir_path << std::endl;
-    //std::cout << "labels dir = " << labels_dir_path << std::endl;
-    //std::cout << "video = " << video << std::endl;
-    //std::cout << "webcam = " << webcam << std::endl;
-
     if (status) {
         std::cout << help_msg << std::endl;
         return EXIT_FAILURE;
     }
-
+    
     if (!webcam && imgs_dir_path.empty() && video.empty()) {
-        std::cerr << RED <<"ERROR: You must either set webcam or provide a "
-            "video file or provide an input images directory" << RESET << std::endl;
+        std::cerr << RED "ERROR: You must either set webcam or provide a "
+                         "video file or provide an input images directory." RESET 
+                  << std::endl;
         std::cout << help_msg << std::endl;
         return EXIT_FAILURE;
     }
 
-    // Retreive all filenames inside the directories.
+    // Set the mode:
+    //   mode = 0 => webcam
+    //   mode = 1 => video
+    //   mode = 2 => images directory
+    int mode;
+    
+    if (webcam) mode = 0;
+    else if (!video.empty()) mode = 1;
+    else if (!imgs_dir_path.empty()) mode = 2;
+
+    // Retreive all filenames inside the directories (for mode 2).
     std::vector<std::string> imgs_paths, labels_paths;
 
-    imgs_paths = get_all_filenames(imgs_dir_path);
-    std::sort(imgs_paths.begin(), imgs_paths.end());
+    if (mode == 2) {
+        imgs_paths = get_all_filenames(imgs_dir_path);
+        std::sort(imgs_paths.begin(), imgs_paths.end());
 
-    if (!labels_dir_path.empty()) {
-        labels_paths = get_all_filenames(labels_dir_path);
-        std::sort(labels_paths.begin(), labels_paths.end());
+        if (!labels_dir_path.empty()) {
+            labels_paths = get_all_filenames(labels_dir_path);
+            std::sort(labels_paths.begin(), labels_paths.end());
+        }
     }
 
-    // If the niput directory is empty => quit.
-    //if (imgs_paths.empty()) {
-    //    std::cerr << "ERROR: Directory '" << imgs_dir_path 
-    //              << "' is empty or doesn't exists." << std::endl;
-    //    return EXIT_FAILURE;
-    //}
-
-
-    // Create fifo files used for Inter Process Communication (CPP <-> Python).
-    if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
-        std::cerr << RED << "ERROR: Cannot create fifo files... aborting" << RESET <<std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Define video capture and video writer.
+    // Define video capture and video writer (for mode 0 or 1).
     cv::VideoCapture capture;
     cv::VideoWriter writer;
 
-    if (webcam) {
+    switch (mode) {
+        case 0: // Open webcam.
+            capture.open(0);
+            if (!capture.isOpened()) {
+                std::cerr << RED "ERROR: Couldn't open webcam." RESET << std::endl;
+                return EXIT_FAILURE;
+            }
+            break;
 
-        capture.open(0);
-        if (!capture.isOpened()) {
-            std::cerr << RED << "ERROR: Couldn't open webcam." << RESET << std::endl;
-            return EXIT_FAILURE;
-        }
+        case 1: // Open video and define writer.
+            capture.open(video);
+            if (!capture.isOpened()) {
+                std::cerr << RED "ERROR: Couldn't open video '" 
+                          <<  video << "'." RESET << std::endl;
+                return EXIT_FAILURE;
+            }
 
-    } else if (!video.empty()) {
+            // Setup writer.
+            int w = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH));
+            int h = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT));
+            double fps = capture.get(cv::CAP_PROP_FPS);
+            writer = cv::VideoWriter(
+                    VIDEO_OUT,
+                    cv::VideoWriter::fourcc('M','J','P','G'),
+                    fps,
+                    cv::Size(w, h),
+                    true
+            );
 
-        capture.open(video);
-        if (!capture.isOpened()) {
-            std::cerr << RED << "ERROR: Couldn't open video '" <<  video
-                      << "'." << RESET << std::endl;
-            return EXIT_FAILURE;
-        }
+            if (!writer.isOpened()) {
+                std::cerr << RED "Could not open the output video "
+                                 "file for write" RESET <<std::endl;
+                return EXIT_FAILURE;
+            }
+            break;
+    }
 
-        // Setup writer.
-        int w = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH));
-        int h = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT));
-        writer = cv::VideoWriter(
-                VIDEO_OUT,
-                cv::VideoWriter::fourcc('M','J','P','G'),
-                15,
-                cv::Size(w, h),
-                true
-        );
-
-        if (!writer.isOpened()) {
-            std::cerr << RED << "Could not open the output video file for write" << RESET <<std::endl;
-            return EXIT_FAILURE;
-        }
+    // Create fifo files used for Inter Process Communication (CPP <-> Python).
+    if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
+        std::cerr << RED "ERROR: Cannot create fifo files... aborting" RESET <<std::endl;
+        return EXIT_FAILURE;
     }
 
     // Define the FaceDetector.
@@ -154,52 +157,65 @@ int main(int argc, char* argv[]) {
     try {
         detector = FaceDetector(HAARCASCADES_PATHS);
     } catch(const std::runtime_error& e) {
-        std::cerr << RED << "Exception caught, impossible to upload the cascades: " << RESET 
+        std::cerr << RED "Exception caught, impossible to upload the cascades: " RESET 
                   << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
     // Clean all images in the output dir from previous run.
     remove_images(get_all_filenames(OUTPUT_DETECTIONS_PATH));
-
-    // Start concurrent thread with the emotion recognizer.
-    std::thread emotion_rec_thread = std::thread(run_emotion_rec);
+    remove_images(get_all_filenames(CROPPED_IMGS_PATH));
 
     // Store IOU of each image (if necessary).
     std::vector<float> IOUs; 
 
     // This object hold all the functionalities for performance metrics.
     PerformanceMetrics pm = PerformanceMetrics(METRICS_OUT);
-
-    // Process all images.
     int correct_detection = 0;
     int detection_count = 0;
-    for (int itr = 0; true; itr++) {
-        std::cout << GREEN << "\n### ITR: " << itr << " ###" << RESET << std::endl;
 
-        // ---------------------- FACE DETECTION ------------------------------
-        // Open input image.
-        //std::cout << "INFO: Analyzing '" << imgs_paths[itr] << "'" << std::endl;
-        //cv::Mat img = cv::imread(imgs_paths[itr]);
+    // Start concurrent thread with the emotion recognizer.
+    std::thread emotion_rec_thread = std::thread(run_emotion_rec);
+
+    // Process all images.
+    for (int itr = 0; true; itr++) {
+
+        std::string info;
 
         // Load image.
         cv::Mat img;
-        if (capture.isOpened())  {
-            capture.read(img);
-        } else if (itr < imgs_paths.size()) {
-            img = cv::imread(imgs_paths[itr]);
-            if (img.empty()) {
-                std::cerr << RED << "ERROR: Cannot open " << imgs_paths[itr] << RESET << std::endl;
-                continue;
-            }
+
+        // Choose next image to process.
+        switch(mode) {
+            case 0:
+            case 1:
+                capture.read(img);
+                info = "INFO: Processing next frame...";
+                break;
+
+            case 2:
+                if (itr >= imgs_paths.size())
+                    break;
+
+                img = cv::imread(imgs_paths[itr]);
+                if (img.empty()) {
+                    std::cerr << RED "ERROR: Cannot open '" << imgs_paths[itr]  
+                              << "'." RESET << std::endl;
+                    continue;
+                }
+
+                info = "INFO: Processing '" + imgs_paths[itr] + "'.";
+                break;
         }
 
+
+        // Quit if no image has been loaded.
         if (img.empty()) break;
 
-        //if (img.empty()) {
-        //    std::cerr << "ERROR: Cannot open " << imgs_paths[itr] << std::endl;
-        //    continue;
-        //}
+        // ---------------------- FACE DETECTION ------------------------------
+        std::cout << INV GREEN "\n### ITR: " << itr << " ###" RESET << std::endl;
+        std::cout << info << std::endl;
+
 
         // Detect faces in the image.
         std::vector<cv::Rect> faces = detector.face_detect(img);
@@ -214,54 +230,64 @@ int main(int argc, char* argv[]) {
         //  ------------------ PERFORMANCE METRICS ----------------------------
 
         // Compute and store metrics in a file, if necessary.
-
         if (!labels_paths.empty()) { 
             labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
             pm.add_image_detections(faces, labels_rect);
         }
 
 
+        // Get emotions for each face found.
         if (!faces.empty()) {
-            // -------------------- EMOTION RECOGNITION ---------------------------
-            //std::cout<<"Prima di python\n"; // TODO: debug comment.
+            // __---------------- EMOTION RECOGNITION -------------------------
             // Open communication, send start message.
             std::ofstream chan_send(SEND_FIFO);
             chan_send << "start" << std::flush;
             chan_send.close();
 
-            //std::cout << "Waiting Python Response...\n"; // TODO: debug comment.
             // Wait for response.
             std::ifstream chan_receive(RECEIVE_FIFO);
 
             // Read all the messages (i.e. emotions) and close channel.
             std::vector<std::string> emotions;
             std::string line;
-            while (std::getline(chan_receive, line))
+            std::cout << "INFO: Received emotions:" << std::endl;
+            while (std::getline(chan_receive, line)) {
                 emotions.push_back(line);
+                std::cout << "\t" << line << std::endl;
+            }
             chan_receive.close();
+
+            if (emotions.size() != faces.size()) {
+                std::cerr << RED "ERROR: Not all faces were classified. "
+                                 "Skipping image." RESET << std::endl;
+                continue;
+            }
 
             // Draw boxes around detected faces and write emotions.
             detector.draw_bbox(img, faces, emotions);
         }
 
         // Store the image with boxes drawn.
-        if (writer.isOpened()) {
+        switch (mode) {
+            case 0:
+                cv::imshow("Capture - Face detection", img);
+                if( cv::waitKey(10) == 27 )  break; 
+                break;
 
-            writer.write(img);
+            case 1:
+                writer.write(img);
+                break;
 
-        } else if (webcam) {
-
-            cv::imshow("Capture - Face detection", img);
-            if( cv::waitKey(10) == 27 )  break; 
-
-        } else if (!faces.empty()){
-
-            std::string out_path = 
-                OUTPUT_DETECTIONS_PATH + "image_" + std::to_string(itr) + ".png";
-            if (cv::imwrite(out_path, img))
-                std::cout << "INFO: '" << out_path << "' saved." << std::endl;
-            else
-                std::cerr << RED << "ERROR: Couldn't save '" << out_path << "' to disk." << RESET << std::endl;
+            case 2:
+                if (faces.empty())
+                    break;
+                std::string out_path = 
+                    OUTPUT_DETECTIONS_PATH + "image_" + std::to_string(itr) + ".png";
+                if (cv::imwrite(out_path, img))
+                    std::cout << "INFO: '" << out_path << "' saved." << std::endl;
+                else
+                    std::cerr << RED << "ERROR: Couldn't save '" << out_path << "' to disk." << RESET << std::endl;
+                break;
 
         }
 
@@ -277,8 +303,8 @@ int main(int argc, char* argv[]) {
     // Wait the thread.
     emotion_rec_thread.join();
 
+    // Printing metrics in a file, if necessary.
     if (!labels_paths.empty()) {
-        // Printing metrics in a file.
         pm.print_metrics(true);
     }
 
