@@ -103,6 +103,8 @@ int main(int argc, char* argv[]) {
     PerformanceMetrics pm = PerformanceMetrics(METRICS_OUT);
 
     // Process all images.
+    int correct_detection = 0;
+    int detection_count = 0;
     for (int itr = 0; itr < imgs_paths.size(); itr++) {
         std::cout << "\n### ITR: " << itr << " ###"<< std::endl;
 
@@ -118,6 +120,7 @@ int main(int argc, char* argv[]) {
         // Detect faces in the image.
         std::vector<cv::Rect> faces = detector.face_detect(img);
         std::cout << "INFO: Detected "<< faces.size() << " faces." << std::endl;
+        detection_count += faces.size();
 
         // Crop detected faces, store them to disk.
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
@@ -135,6 +138,11 @@ int main(int argc, char* argv[]) {
             if (itr == 0) pm.clean_metrics();
             pm.print_metrics(imgs_paths[itr]);
             std::vector<float> label_IOUS = pm.get_label_IOUs();
+            for(int k = 0; k < label_IOUS.size(); k++){
+                if(label_IOUS[k] > 0){
+                    correct_detection ++;
+                }
+            }
             IOUs.insert(IOUs.end(), label_IOUS.begin(), label_IOUS.end());
         }
 
@@ -185,6 +193,8 @@ int main(int argc, char* argv[]) {
         //std::cout<<"size: "<< IOUs.size();
         float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
         std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
+        float accuracy = float(correct_detection) / detection_count;
+        std::cout<<std::endl<<"The total accuracy over the dataset is: "<< accuracy<<std::endl;
     }
 
     return EXIT_SUCCESS;

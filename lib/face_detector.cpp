@@ -124,7 +124,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
             rejectLevels,
             levelWeights,
             1.05, // scaleFactor
-            25,   // minNeighbors
+            5,   // minNeighbors
             0,   // flags
             cv::Size(min_side, min_side), // minSize
             cv::Size(),       // maxSize
