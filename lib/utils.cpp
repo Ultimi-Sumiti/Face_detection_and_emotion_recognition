@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <filesystem>
 #include <opencv2/imgcodecs.hpp>
+#include <getopt.h>
 
 namespace fs = std::filesystem;
 
@@ -14,22 +15,52 @@ int parse_command_line(
         int argc,
         char **argv,
         std::string& imgs_dir_path,
-        std::string& labels_dir_path
-        ) {
-    int opt;
-    while ((opt = getopt(argc, argv, "i:l:")) != -1) {
-        switch (opt) {
-            case 'i':
+        std::string& labels_dir_path,
+        std::string& video,
+        int& webcam
+) {
+    while (1) {
+        //int option_index = 0;
+        static struct option long_options[] = {
+            {"imgsdir",     required_argument, 0,  1 },
+            {"labelsdir",   required_argument, 0,  2 },
+            {"webcam",      optional_argument, 0,  3 },
+            {"video",       required_argument, 0,  4 },
+            {0,             0,                 0,  0 }
+        };
+
+        int c = getopt_long(argc, argv, "", long_options, NULL);
+
+        if (c == -1)
+            break;
+
+        switch (c) {
+            case 1:
                 imgs_dir_path = optarg;
                 break;
-            case 'l':
+
+            case 2:
                 labels_dir_path = optarg;
                 break;
+
+            case 3:
+                webcam = 1;
+                break;
+
+            case 4:
+                video = optarg;
+                break;
+
             case '?':
                 return 1;
                 break;
+
+            default:
+                //printf("?? getopt returned character code 0%o ??\n", c);
+                return 1;
         }
     }
+
     return 0;
 }
 

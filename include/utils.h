@@ -8,19 +8,23 @@
 // Help message.
 static const char help_msg[] = 
 "Usage:\n"
-" ./out -i <path> -l <path>\n"
+" ./out --imgsdir <path> -labelsdir <path> --video <path> --webcam\n"
 "  Where:\n"
-"    -i is the input image directory path (REQUIRED)\n"
-"    -l is the label directory path       (OPTIONAL)\n";
+"    --imgsdir is the input image directory path\n"
+"    --labelsdir is the label directory path (OPTIONAL)\n"
+"    --video is the path of a video\n"
+"    --webcam to detect faces using webcam";
 
 
 // Function used to parse the command line arguments.
 // Returns 0 on succes, 1 on failure.
 int parse_command_line(
         int argc,
-        char* argv[],
-        std::string& imgs_dir_path, 
-        std::string& label_dir_path
+        char **argv,
+        std::string& imgs_dir_path,
+        std::string& labels_dir_path,
+        std::string& video,
+        int& webcam
 );
 
 
