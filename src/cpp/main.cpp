@@ -217,17 +217,7 @@ int main(int argc, char* argv[]) {
 
         if (!labels_paths.empty()) { 
             labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-            pm.set_detected_faces(faces);
-            pm.set_face_labels(labels_rect);
-            if (itr == 0) pm.clean_metrics();
-            pm.print_metrics(imgs_paths[itr]);
-            std::vector<float> label_IOUS = pm.get_label_IOUs();
-            for(int k = 0; k < label_IOUS.size(); k++){
-                if(label_IOUS[k] > 0){
-                    correct_detection ++;
-                }
-            }
-            IOUs.insert(IOUs.end(), label_IOUS.begin(), label_IOUS.end());
+            pm.add_image_detections(faces, labels_rect);
         }
 
 
@@ -288,11 +278,8 @@ int main(int argc, char* argv[]) {
     emotion_rec_thread.join();
 
     if (!labels_paths.empty()) {
-        //std::cout<<"size: "<< IOUs.size();
-        float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
-        std::cout<<std::endl<< BLUE <<"The avarage IOU obtained with current detector configuration: "<< RESET << avg_IOU<<std::endl;
-        float accuracy = float(correct_detection) / detection_count;
-        std::cout<< BLUE << "The total accuracy over the dataset is: "<< RESET <<accuracy<<std::endl;
+        // Printing metrics in a file.
+        pm.print_metrics(true);
     }
 
     return EXIT_SUCCESS;
