@@ -93,10 +93,6 @@ int main(int argc, char* argv[]) {
     // Clean all images in the output dir from previous run.
     remove_images(get_all_filenames(OUTPUT_DETECTIONS_PATH));
 
-    // Define the sending channel and the receiving channel.
-    std::ofstream chan_send;
-    std::ifstream chan_receive;
-
     // Start concurrent thread with the emotion recognizer.
     std::thread emotion_rec_thread = std::thread(run_emotion_rec);
 
@@ -147,13 +143,13 @@ int main(int argc, char* argv[]) {
         // -------------------- EMOTION RECOGNITION ---------------------------
         //std::cout<<"Prima di python\n"; // TODO: debug comment.
         // Open communication, send start message.
-        chan_send.open(SEND_FIFO);
+        std::ofstream chan_send(SEND_FIFO);
         chan_send << "start" << std::flush;
         chan_send.close();
 
         //std::cout << "Waiting Python Response...\n"; // TODO: debug comment.
         // Wait for response.
-        chan_receive.open(RECEIVE_FIFO);
+        std::ifstream chan_receive(RECEIVE_FIFO);
 
         // Read all the messages (i.e. emotions) and close channel.
         std::vector<std::string> emotions;
@@ -178,7 +174,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Open communication, send exit message.
-    chan_send.open(SEND_FIFO);
+    std::ofstream chan_send(SEND_FIFO);
     chan_send << "exit" << std::flush;
     chan_send.close();
 
