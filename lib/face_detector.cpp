@@ -109,7 +109,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
     int best_count = 0;
     float blur_score = 0.0f;
     cv::Rect img_rect = cv::Rect(0,0, frame.cols,frame.rows);
-    float min_blur = calculateBlurScore(frame, img_rect) / 2;
+    float min_blur = calculateBlurScore(frame, img_rect) / 4;
     int min_score = min_blur * min_area;
     //int min_weight = 80;
 
@@ -123,7 +123,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
             faces,
             rejectLevels,
             levelWeights,
-            1.02, // scaleFactor
+            1.05, // scaleFactor
             25,   // minNeighbors
             0,   // flags
             cv::Size(min_side, min_side), // minSize

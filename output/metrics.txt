@@ -1,30 +1,30 @@
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_1.jpg: 
     IOU of box number 0 is: 0
-    IOU of box number 1 is: 0.573269
+    IOU of box number 1 is: 0.557765
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_2.jpg: 
-    IOU of box number 0 is: 0.556674
+    IOU of box number 0 is: 0.563218
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_3.jpg: 
-    IOU of box number 0 is: 0.719486
+    IOU of box number 0 is: 0.693323
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_4.jpg: 
-    IOU of box number 0 is: 0.618968
+    IOU of box number 0 is: 0.622945
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_5.jpg: 
-    IOU of box number 0 is: 0.563962
+    IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/angry_6.jpg: 
     IOU of box number 0 is: 0.411181
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/disgust_1.jpg: 
-    IOU of box number 0 is: 0.363961
+    IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/disgust_2.jpg: 
-    IOU of box number 0 is: 0.522796
+    IOU of box number 0 is: 0.525889
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/disgust_3.jpg: 
-    IOU of box number 0 is: 0.441012
+    IOU of box number 0 is: 0.475776
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/disgust_4.jpg: 
     IOU of box number 0 is: 0.709534
@@ -36,14 +36,14 @@ IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/disgust
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_1.jpg: 
-    IOU of box number 0 is: 0.128407
-    IOU of box number 1 is: 0.727726
+    IOU of box number 0 is: 0
+    IOU of box number 1 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_2.jpg: 
-    IOU of box number 0 is: 0.673237
+    IOU of box number 0 is: 0.66315
     IOU of box number 1 is: 0.631199
-    IOU of box number 2 is: 0.731835
-    IOU of box number 3 is: 0.557859
+    IOU of box number 2 is: 0.721249
+    IOU of box number 3 is: 0.576453
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_3.jpg: 
     IOU of box number 0 is: 0
@@ -52,19 +52,19 @@ IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_4.
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_5.jpg: 
-    IOU of box number 0 is: 0.69294
+    IOU of box number 0 is: 0.699263
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/fear_6.jpg: 
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_1.jpg: 
-    IOU of box number 0 is: 0.705916
+    IOU of box number 0 is: 0.701071
     IOU of box number 1 is: 0
-    IOU of box number 2 is: 0.59831
-    IOU of box number 3 is: 0.58953
+    IOU of box number 2 is: 0.588039
+    IOU of box number 3 is: 0.579155
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_2.jpg: 
-    IOU of box number 0 is: 0.426278
+    IOU of box number 0 is: 0.450142
     IOU of box number 1 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_3.jpg: 
@@ -82,14 +82,14 @@ IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_5
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_6.jpg: 
     IOU of box number 0 is: 0
-    IOU of box number 1 is: 0.759452
+    IOU of box number 1 is: 0.759593
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/happy_7.jpg: 
-    IOU of box number 0 is: 0.803043
+    IOU of box number 0 is: 0.802792
     IOU of box number 1 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral_1.jpg: 
-    IOU of box number 0 is: 0.64548
+    IOU of box number 0 is: 0.658743
     IOU of box number 1 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral_2.jpg: 
@@ -100,12 +100,12 @@ IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral
     IOU of box number 0 is: 0.787119
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral_4.jpg: 
-    IOU of box number 0 is: 0.757023
+    IOU of box number 0 is: 0.718207
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral_5.jpg: 
-    IOU of box number 0 is: 0.715134
-    IOU of box number 1 is: 0.732443
-    IOU of box number 2 is: 0.781545
+    IOU of box number 0 is: 0
+    IOU of box number 1 is: 0
+    IOU of box number 2 is: 0
     IOU of box number 3 is: 0
     IOU of box number 4 is: 0
 
@@ -114,50 +114,50 @@ IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral
     IOU of box number 1 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/neutral_7.jpg: 
-    IOU of box number 0 is: 0.785515
+    IOU of box number 0 is: 0.785724
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_1.jpg: 
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_2.jpg: 
-    IOU of box number 0 is: 0.622583
+    IOU of box number 0 is: 0.667658
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_3.jpg: 
-    IOU of box number 0 is: 0.609163
+    IOU of box number 0 is: 0.611059
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_4.jpg: 
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_5.jpg: 
-    IOU of box number 0 is: 0.711635
+    IOU of box number 0 is: 0.71736
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_6.jpg: 
-    IOU of box number 0 is: 0.444238
+    IOU of box number 0 is: 0.436789
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/sad_7.jpg: 
-    IOU of box number 0 is: 0.788662
+    IOU of box number 0 is: 0.790764
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_1.jpg: 
-    IOU of box number 0 is: 0.409663
+    IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_2.jpg: 
-    IOU of box number 0 is: 0.666667
-    IOU of box number 1 is: 0.536343
+    IOU of box number 0 is: 0.619898
+    IOU of box number 1 is: 0.521233
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_3.jpg: 
     IOU of box number 0 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_4.jpg: 
-    IOU of box number 0 is: 0.517111
+    IOU of box number 0 is: 0
     IOU of box number 1 is: 0
     IOU of box number 2 is: 0
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_5.jpg: 
-    IOU of box number 0 is: 0.588999
+    IOU of box number 0 is: 0.588075
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_6.jpg: 
-    IOU of box number 0 is: 0.780415
+    IOU of box number 0 is: 0.732789
 
 IOUs of labels in image ../data/dataset_detection/images_scaled_max_1080/surprise_7.jpg: 
-    IOU of box number 0 is: 0.687274
+    IOU of box number 0 is: 0.698956
 

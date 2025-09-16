@@ -30,6 +30,7 @@ if(OpenCV_FOUND)
         opencv_core
         opencv_imgproc
         opencv_objdetect
+        opencv_videoio
         )
 else()
     message(FATAL_ERROR "OpenCV library not found.")
