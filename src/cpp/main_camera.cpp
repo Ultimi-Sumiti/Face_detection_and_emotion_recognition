@@ -5,6 +5,10 @@
 #include <vector>
 #include <numeric>
 #include <opencv2/imgcodecs.hpp>
+#include "opencv2/objdetect.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/videoio.hpp"
 
 #include "../../include/utils.h"
 #include "../../include/performance_metrics.h"
@@ -16,7 +20,7 @@ const std::vector<std::string> HAARCASCADES_PATHS = {
     "../data/haarcascades/haarcascade_frontalface_alt.xml",
     //"../data/haarcascades/haarcascade_frontalface_alt_tree.xml",
     //"../data/haarcascades/haarcascade_frontalface_default.xml",
-    "../data/haarcascades/haarcascade_frontalface_alt2.xml",
+    //"../data/haarcascades/haarcascade_frontalface_alt2.xml",
     //"../data/haarcascades/haarcascade_profileface.xml",
 };
 
@@ -47,32 +51,32 @@ void run_emotion_rec() {
 int main(int argc, char* argv[]) {
 
     // Parse command line, get image directory and (optinally) labels directory.
-    std::string imgs_dir_path{}, labels_dir_path{};
-    if (parse_command_line(argc, argv, imgs_dir_path, labels_dir_path)) {
-        std::cout << help_msg << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // If input dir is missing => quit.
-    if (imgs_dir_path.empty()) {
-        std::cerr << "ERROR: Input directory argument is missing." << std::endl;
-        std::cout << help_msg << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Retreive all filenames inside the directories.
-    std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
-    std::vector<std::string> labels_paths{};
-
-    if (!labels_dir_path.empty())
-        labels_paths = get_all_filenames(labels_dir_path);
-
-    // If the niput directory is empty => quit.
-    if (imgs_paths.empty()) {
-        std::cerr << "ERROR: Directory '" << imgs_dir_path 
-                  << "' is empty or doesn't exists." << std::endl;
-        return EXIT_FAILURE;
-    }
+    //std::string imgs_dir_path{}, labels_dir_path{};
+    //if (parse_command_line(argc, argv, imgs_dir_path, labels_dir_path)) {
+    //    std::cout << help_msg << std::endl;
+    //    return EXIT_FAILURE;
+    //}
+//
+    //// If input dir is missing => quit.
+    //if (imgs_dir_path.empty()) {
+    //    std::cerr << "ERROR: Input directory argument is missing." << std::endl;
+    //    std::cout << help_msg << std::endl;
+    //    return EXIT_FAILURE;
+    //}
+//
+    //// Retreive all filenames inside the directories.
+    //std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
+    //std::vector<std::string> labels_paths{};
+//
+    //if (!labels_dir_path.empty())
+    //    labels_paths = get_all_filenames(labels_dir_path);
+//
+    //// If the niput directory is empty => quit.
+    //if (imgs_paths.empty()) {
+    //    std::cerr << "ERROR: Directory '" << imgs_dir_path 
+    //              << "' is empty or doesn't exists." << std::endl;
+    //    return EXIT_FAILURE;
+    //}
 
     // Create fifo files used for Inter Process Communication (CPP <-> Python).
     if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
@@ -93,6 +97,10 @@ int main(int argc, char* argv[]) {
     // Clean all images in the output dir from previous run.
     remove_images(get_all_filenames(OUTPUT_DETECTIONS_PATH));
 
+    // Define the sending channel and the receiving channel.
+    std::ofstream chan_send;
+    std::ifstream chan_receive;
+
     // Start concurrent thread with the emotion recognizer.
     std::thread emotion_rec_thread = std::thread(run_emotion_rec);
 
@@ -100,27 +108,31 @@ int main(int argc, char* argv[]) {
     std::vector<float> IOUs; 
 
     // This object hold all the functionalities for performance metrics.
-    PerformanceMetrics pm = PerformanceMetrics(METRICS_OUT);
+    //PerformanceMetrics pm = PerformanceMetrics(METRICS_OUT);
 
+
+    int camera_device = 0;
+    cv::VideoCapture capture;
+    //-- 2. Read the video stream
+    std::string video_path = "../data/dataset_detection/video/last_of_us.mp4";
+    capture.open(camera_device);
+    //std::cout<<"Opened: "<<capture.isOpened();
     // Process all images.
-    int correct_detection = 0;
-    int detection_count = 0;
-    for (int itr = 0; itr < imgs_paths.size(); itr++) {
+    cv::Mat img;
+    for (int itr = 0; capture.read(img); itr++) {
         std::cout << "\n### ITR: " << itr << " ###"<< std::endl;
-
         // ---------------------- FACE DETECTION ------------------------------
         // Open input image.
-        std::cout << "INFO: Analyzing '" << imgs_paths[itr] << "'" << std::endl;
-        cv::Mat img = cv::imread(imgs_paths[itr]);
-        if (img.empty()) {
-            std::cerr << "ERROR: Cannot open " << imgs_paths[itr] << std::endl;
-            continue;
-        }
+        //std::cout << "INFO: Analyzing '" << imgs_paths[itr] << "'" << std::endl;
+        //cv::Mat img = cv::imread(imgs_paths[itr]);
+        //if (img.empty()) {
+        //    std::cerr << "ERROR: Cannot open " << imgs_paths[itr] << std::endl;
+        //    continue;
+        //}
 
         // Detect faces in the image.
         std::vector<cv::Rect> faces = detector.face_detect(img);
         std::cout << "INFO: Detected "<< faces.size() << " faces." << std::endl;
-        detection_count += faces.size();
 
         // Crop detected faces, store them to disk.
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
@@ -131,33 +143,35 @@ int main(int argc, char* argv[]) {
 
         // Compute and store metrics in a file, if necessary.
 
-        if (!labels_paths.empty()) { 
-            labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
-            pm.set_detected_faces(faces);
-            pm.set_face_labels(labels_rect);
-            if (itr == 0) pm.clean_metrics();
-            pm.print_metrics(imgs_paths[itr]);
-            std::vector<float> label_IOUS = pm.get_label_IOUs();
-            for(int k = 0; k < label_IOUS.size(); k++){
-                if(label_IOUS[k] > 0){
-                    correct_detection ++;
-                }
-            }
-            IOUs.insert(IOUs.end(), label_IOUS.begin(), label_IOUS.end());
-        }
+        //if (!labels_paths.empty()) { 
+        //    labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+        //    pm.set_detected_faces(faces);
+        //    pm.set_face_labels(labels_rect);
+        //    if (itr == 0) pm.clean_metrics();
+        //    pm.print_metrics(imgs_paths[itr]);
+        //    std::vector<float> label_IOUS = pm.get_label_IOUs();
+        //    IOUs.insert(IOUs.end(), label_IOUS.begin(), label_IOUS.end());
+        //}
 
-        if(faces.empty()) continue;
+        if(faces.empty()) {
+            cv::imshow("Capture - Face detection", img);
+             if( cv::waitKey(10) == 27 )
+            {
+                break; // escape
+            }
+            continue;
+        }
 
         // -------------------- EMOTION RECOGNITION ---------------------------
         //std::cout<<"Prima di python\n"; // TODO: debug comment.
         // Open communication, send start message.
-        std::ofstream chan_send(SEND_FIFO);
+        chan_send.open(SEND_FIFO);
         chan_send << "start" << std::flush;
         chan_send.close();
 
         //std::cout << "Waiting Python Response...\n"; // TODO: debug comment.
         // Wait for response.
-        std::ifstream chan_receive(RECEIVE_FIFO);
+        chan_receive.open(RECEIVE_FIFO);
 
         // Read all the messages (i.e. emotions) and close channel.
         std::vector<std::string> emotions;
@@ -169,33 +183,37 @@ int main(int argc, char* argv[]) {
         // Draw boxes around detected faces and write emotions.
         detector.draw_bbox(img, faces, emotions);
 
+        cv::imshow("Capture - Face detection", img);
+        if( cv::waitKey(10) == 27 )
+        {
+            break; // escape
+        }
+
         // Store the image with boxes drawn.
-        std::string out_path = 
-            OUTPUT_DETECTIONS_PATH + "image_" + std::to_string(itr) + ".png";
-        if (cv::imwrite(out_path, img))
-            std::cout << "INFO: '" << out_path << "' saved." << std::endl;
-        else
-            std::cerr << "ERROR: Couldn't save '" << out_path << "' to disk." << std::endl;
+        //std::string out_path = 
+        //    OUTPUT_DETECTIONS_PATH + "image_" + std::to_string(itr) + ".png";
+        //if (cv::imwrite(out_path, img))
+        //    std::cout << "INFO: '" << out_path << "' saved." << std::endl;
+        //else
+        //    std::cerr << "ERROR: Couldn't save '" << out_path << "' to disk." << std::endl;
 
         // Clean cropped image folder for next interation.
         remove_images(cropped_paths); 
     }
 
     // Open communication, send exit message.
-    std::ofstream chan_send(SEND_FIFO);
+    chan_send.open(SEND_FIFO);
     chan_send << "exit" << std::flush;
     chan_send.close();
 
     // Wait the thread.
     emotion_rec_thread.join();
 
-    if (!labels_paths.empty()) {
-        //std::cout<<"size: "<< IOUs.size();
-        float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
-        std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
-        float accuracy = float(correct_detection) / detection_count;
-        std::cout<<std::endl<<"The total accuracy over the dataset is: "<< accuracy<<std::endl;
-    }
+    //if (!labels_paths.empty()) {
+    //    //std::cout<<"size: "<< IOUs.size();
+    //    float avg_IOU = (std::accumulate(IOUs.begin(), IOUs.end(), 0.0))/(IOUs.size());
+    //    std::cout<<std::endl<<"The avarage IOU obtained with current detector configuration: "<< avg_IOU<<std::endl;
+    //}
 
     return EXIT_SUCCESS;
 }
