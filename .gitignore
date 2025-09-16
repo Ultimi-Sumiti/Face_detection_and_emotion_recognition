@@ -7,5 +7,8 @@ sender.cpp
 build
 output/cropped_imgs/*.png
 output/cropped_imgs/*.jpg
+output/detections/*.png
 output/detections/*.jpg
 log/emotion_classifier_log.txt
+output/metrics.txt
+metrics.txt
