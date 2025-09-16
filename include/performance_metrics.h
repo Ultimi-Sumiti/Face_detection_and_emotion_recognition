@@ -3,6 +3,8 @@
 
 #include <opencv2/core/types.hpp>
 
+const float IOU_THRESHOLD = 0.5;
+
 /*
     This class relize the purpose of summing up all the performance metrics functions, data and 
     functionalities. 
@@ -15,29 +17,25 @@ class PerformanceMetrics{
 
         // Main constructor: initializes both the detected faces positions and label faces positions.
         PerformanceMetrics(
-                const std::vector<cv::Rect>& detected_faces,
-                const std::vector<cv::Rect>& face_labels,
+                const std::vector<std::vector<cv::Rect>>& detected_faces,
+                const std::vector<std::vector<cv::Rect>>& face_labels,
                 const std::string& out_file
                 ) : 
-            detected_faces(detected_faces), face_labels(face_labels), metrics_file_path(out_file){}
+            detected_faces(detected_faces), face_labels(face_labels), metrics_file_path(out_file){ clean_metrics();}
 
         // Empty constructor.
         PerformanceMetrics(const std::string& out_file) : metrics_file_path(out_file), face_labels({}), 
-            detected_faces({}){}
+            detected_faces({}){clean_metrics();}
 
         //MEMBER FUNCTIONS:
         // Setter.
-        void set_detected_faces(std::vector<cv::Rect>& detections);
-        void set_face_labels(std::vector<cv::Rect>& labels);
+        void add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels);
 
         // This member function compute the IOUs of the detected faces.
-        std::vector<float> get_label_IOUs();
-
-        // Function to compute the mean over IOUs of recatangles (MIOU).
-        float compute_MIOU();
+        std::vector<float> get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels);
 
         // Function to write in a file and computing in terminal the metrics for the scenepath.
-        void print_metrics(std::string file_name = "");
+        void print_metrics(bool verbose);
 
         void clean_metrics();
 
@@ -46,8 +44,8 @@ class PerformanceMetrics{
         // DATA MEMEBERS: 
 
         // Vectors in which memorize the coordinate of the read values from the label txt file.
-        std::vector<cv::Rect> detected_faces;
-        std::vector<cv::Rect> face_labels;
+        std::vector<std::vector<cv::Rect>> detected_faces;
+        std::vector<std::vector<cv::Rect>> face_labels;
 
         std::string metrics_file_path;
 
@@ -59,4 +57,12 @@ class PerformanceMetrics{
 // Function to compute the IOU (intersection over union) between 2 given boxes.
 float compute_IOU(cv::Rect& box1, cv::Rect& box2);
 
+// Function to compute the mean over IOUs of recatangles (MIOU).
+float compute_MIOU(std::vector<float> IOUs);
+
+// Function to compute the precision.
+float compute_precision(std::vector<float> all_IOUs, float threshold, int all_detections);
+
+// Function to compute the recall.
+float compute_recall(std::vector<float> all_IOUs, float threshold);
 #endif
