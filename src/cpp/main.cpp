@@ -5,6 +5,7 @@
 #include <vector>
 #include <numeric>
 #include <opencv2/imgcodecs.hpp>
+#include <algorithm>
 
 #include "../../include/utils.h"
 #include "../../include/performance_metrics.h"
@@ -61,11 +62,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Retreive all filenames inside the directories.
-    std::vector<std::string> imgs_paths = get_all_filenames(imgs_dir_path);
-    std::vector<std::string> labels_paths{};
+    std::vector<std::string> imgs_paths, labels_paths;
 
-    if (!labels_dir_path.empty())
+    imgs_paths = get_all_filenames(imgs_dir_path);
+    std::sort(imgs_paths.begin(), imgs_paths.end());
+
+    if (!labels_dir_path.empty()) {
         labels_paths = get_all_filenames(labels_dir_path);
+        std::sort(labels_paths.begin(), labels_paths.end());
+    }
 
     // If the niput directory is empty => quit.
     if (imgs_paths.empty()) {
@@ -73,6 +78,7 @@ int main(int argc, char* argv[]) {
                   << "' is empty or doesn't exists." << std::endl;
         return EXIT_FAILURE;
     }
+
 
     // Create fifo files used for Inter Process Communication (CPP <-> Python).
     if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
