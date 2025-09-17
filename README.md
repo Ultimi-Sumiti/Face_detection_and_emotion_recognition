@@ -51,7 +51,11 @@ The CNN for emotion recognition was trained on the **FER-2013 dataset**. We appl
 
 As a bonus the program can track faces in a video or using the webcam. In the following there are some examples.
 
-https://github.com/user-attachments/assets/59a87002-e1ba-4f44-a51a-571a10870527
+https://github.com/user-attachments/assets/aad5cd90-5d57-4b25-bdf5-69f600718744
+
+https://github.com/user-attachments/assets/0f30b6a9-32e2-4f2d-98bd-fba734de10b8
+
+https://github.com/user-attachments/assets/d48f5473-af39-418c-b7a0-1ae83ce234f6
 
 ## Project Structure
 
