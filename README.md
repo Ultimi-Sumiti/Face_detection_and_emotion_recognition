@@ -5,9 +5,9 @@
 
 # Face Detection and Emotion Recognition
 
-This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection with a pre-trained convolutional neural network (CNN) for emotion classification.
+This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection thath is the Viola Jones algorithm, with a pre-trained convolutional neural network (EfficientNet/ConvexNetTiny) for emotion classification.
 
-## 🎯 Project Goal
+## Project Goal
 
 The main objective is to develop a comprehensive facial analysis system that integrates two fundamental tasks:
 1.  **Face Detection**: To identify and isolate facial regions in an image.
@@ -44,7 +44,7 @@ The CNN for emotion recognition was trained on the **FER-2013 dataset**. This da
 
 For the overall system evaluation, a separate test dataset containing 46 images was used. Each image is annotated with bounding boxes for all visible faces and the corresponding emotion labels.
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 The system's evaluation was conducted at multiple levels to measure the effectiveness of each component and the complete workflow.
 
@@ -59,35 +59,90 @@ The system's evaluation was conducted at multiple levels to measure the effectiv
 * **System-Level Evaluation**:
     * The primary metric is the **percentage of detected faces with correctly classified emotions**, to assess the end-to-end performance of the system.
 
-## 💡 Potential Applications
+## Other Features of our application - Detection and Recognition on videos
+As additive features, we employed our system in other affine applications like detection and emotion recognition in videos and real-time camera videos. In practice our system based on the user's will can also process a video passed as path or the video exiting from one camera appendix of the computer's of the user.
 
-This system can be applied in various domains:
-* **Human-Computer Interaction (HCI)**: To create more empathetic and responsive systems capable of interpreting users' emotional states.
-* **Behavioral Analysis**: To provide insights in contexts such as education, retail, and security by monitoring people's emotional responses.
-* **Photo Management**: To automatically organize and tag images based on facial expressions, simplifying searches in large photo archives.
+## Project Structure
+``` bash
+Face_detection_and_emotion_recognition/
+├── data/
+│   ├── dataset_classification/    # datasets for classification
+│   ├── dataset_detection/         # datasets for detection
+│   ├── haarcascades/              # Haar Cascade xml files
+│   └── trained_models/            # Our fine tuned model
+├── include/                       # C++ header files
+├── lib/                           # C++ definitions/implementation of the headers
+├── log/                           # log files
+├── output/                        # generated outputs like detections and metrics
+├── src/                           
+│   ├── cpp/                       # C++ source code
+│   └── python/                    # Python source code
+├── tmp/                           # temporary files
+├── .gitignore                     
+├── CMakeLists.txt                  
+└── README.md                      # main project documentation
+```
 
-## ⚠️ Limitations
 
-The system has some important limitations:
-* It works **exclusively on static images** and does not support real-time processing.
-* Emotion recognition is entirely dependent on the success of face detection. If the Viola-Jones algorithm does not detect a face, it **will not be analyzed** for emotion.
 
-## 🚀 How to Run the Project
+
+## How to install and run the project
 
 *For detailed instructions on installing dependencies and running the code, please refer to the specific documentation within the repository.*
 
-**Prerequisites (example):**
+Firstly you need to install the following dependecies if are not already installed in your machine.
+**Dependencies:**
 * C++ Compiler (GCC, Clang, etc.)
 * OpenCV
 * Python 3.x
-* TensorFlow/Keras
+* Pytorch
+* Keras
 * NumPy
+* Matplotlib
+* Sklearn
+* Seaborn
 
-**Execution (example):**
+After that for running the code you have to make the following commands:
+
+---
+**Build**
+
+
+
 ```bash
-# Compile and run the face detection module
-g++ -o face_detection main.cpp `pkg-config --cflags --libs opencv4`
-./face_detection input.jpg
+# Create the build directory
+mkdir build
+```
+```bash
+# Compile the entire pipeline
+cmake ..
+make
+```
+---
+**Run**
 
-# Run the emotion recognition script
-python emotion_recognition.py --image output_faces/face_1.jpg
+```bash
+# Run the pipeline specifying the labels for the calculation of the metrics
+./out --imgsdir <path> -labelsdir <path> 
+```
+Or if you don't need to output the metrics you can also execute
+```bash
+# Run the pipeline specifying the labels for the calculation of the metrics
+./out --imgsdir <path> 
+```
+If you want to process the pipeline on the video of one camera device connected with your machine you have to execute:
+```bash
+# Run the pipeline specifying the labels for the calculation of the metrics
+./out --webcam 
+```
+Otherwise if you want to do the same but on a video, you must to pass the path of it with the folowing command:
+```bash
+# Run the pipeline specifying the labels for the calculation of the metrics
+./out --video <path> 
+```
+  Where:
+   * --imgsdir is the input image directory path
+   * --labelsdir is the label directory path (OPTIONAL)  
+   * --video is the path of a video 
+   * --webcam to detect faces using webcam
+    
