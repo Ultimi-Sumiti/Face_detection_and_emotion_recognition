@@ -8,7 +8,7 @@
 // Help message.
 static const char help_msg[] = 
 "Usage:\n"
-" ./out --imgsdir <path> -labelsdir <path> --video <path> --webcam\n"
+" ./out --imgsdir <path> --labelsdir <path> --video <path> --webcam\n"
 "  Where:\n"
 "    --imgsdir is the input image directory path\n"
 "    --labelsdir is the label directory path (OPTIONAL)\n"
