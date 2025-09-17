@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="350" height="450" alt="icon" src="https://github.com/user-attachments/assets/d0c8b109-2a96-4057-a093-3b985a04f8b7" />
+<img width="650" height="350" alt="icon_3" src="https://github.com/user-attachments/assets/8a3e7694-b632-4506-9343-f45166ebaf80" />
 </p>
 
 # Face Detection and Emotion Recognition

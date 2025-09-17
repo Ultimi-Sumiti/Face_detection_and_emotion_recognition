@@ -12,3 +12,5 @@ output/detections/*.jpg
 log/emotion_classifier_log.txt
 output/metrics.txt
 metrics.txt
+output/video.avioutput/
+15fps_10sec.mp4
