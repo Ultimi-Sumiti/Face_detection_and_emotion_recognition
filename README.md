@@ -122,22 +122,22 @@ make
 **Run**
 
 ```bash
-# Run the pipeline specifying the labels for the calculation of the metrics
+# Run the pipeline on images specifying the labels for the calculation of the metrics
 ./out --imgsdir <path> -labelsdir <path> 
 ```
 Or if you don't need to output the metrics you can also execute
 ```bash
-# Run the pipeline specifying the labels for the calculation of the metrics
+# Run the pipeline specifying on images
 ./out --imgsdir <path> 
 ```
 If you want to process the pipeline on the video of one camera device connected with your machine you have to execute:
 ```bash
-# Run the pipeline specifying the labels for the calculation of the metrics
+# Run the pipeline with one camera of your computer
 ./out --webcam 
 ```
 Otherwise if you want to do the same but on a video, you must to pass the path of it with the folowing command:
 ```bash
-# Run the pipeline specifying the labels for the calculation of the metrics
+# Run the pipeline on a video specifying the path
 ./out --video <path> 
 ```
   Where:
