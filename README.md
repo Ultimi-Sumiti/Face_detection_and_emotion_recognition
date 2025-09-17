@@ -7,6 +7,15 @@
 
 This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection thath is the Viola Jones algorithm, with a convolutional neural network (EfficientNetV2B0) for emotion classification.
 
+## Table of Contents
+
+- [Project Goal](#project-goal)
+- [System Architecture](#system-architecture)
+- [Dataset Used](#dataset-used)
+- [Extra Features: Webcam and Video processing](#extra-features-webcam-and-video-processing)
+- [Project Structure](#project-structure)
+- [How to install and run the project](#how-to-install-and-run-the-project)
+
 ## Project Goal
 
 The main objective is to develop a comprehensive facial analysis system that integrates two fundamental tasks:
@@ -34,11 +43,11 @@ Once a face is detected, its region is passed to the second module. This compone
 * Surprise
 * Neutral
 
-## Datasets Used
+## Dataset Used
 
 The CNN for emotion recognition was trained on the **FER-2013 dataset**. We applied a basic transfer learning and fine tuning technique to a pre-trained EfficientNetV2B0 architecture.
 
-## Extra Features: Wecam and Video processing
+## Extra Features: Webcam and Video processing
 
 As a bonus the program can track faces in a video or using the webcam. In the following there are some examples.
 
