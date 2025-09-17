@@ -6,8 +6,8 @@
 const float IOU_THRESHOLD = 0.5;
 
 /*
-    This class relize the purpose of summing up all the performance metrics functions, data and 
-    functionalities. 
+    This class relize the purpose of summing up all the performance metrics 
+    functions, data and functionalities. 
 */
 class PerformanceMetrics{
 
@@ -65,4 +65,5 @@ float compute_precision(std::vector<float> all_IOUs, float threshold, int all_de
 
 // Function to compute the recall.
 float compute_recall(std::vector<float> all_IOUs, float threshold);
+
 #endif

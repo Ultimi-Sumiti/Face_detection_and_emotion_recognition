@@ -9,8 +9,9 @@
 
 //-------------- MEMBER FUNCTIONS --------------
 void FaceDetector::draw_bbox(
-        cv::Mat frame, std::vector<cv::Rect> faces,
-        const std::vector<std::string> &labels
+        cv::Mat& frame,
+        const std::vector<cv::Rect>& faces, 
+        const std::vector<std::string>& labels
 ) {
     for (size_t i = 0; i < faces.size(); i++) {
         std::string label = labels[i].substr(0, labels[i].find(" "));
@@ -51,22 +52,6 @@ void FaceDetector::draw_bbox(
     }
 }
 
-
-std::vector<cv::Rect> FaceDetector::vj_detect(cv::Mat frame) {
-    cv::Mat frame_gray;
-    // Convert into GRAY the frame passed.
-    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-    // Histogram equalization.
-    cv::equalizeHist(frame_gray, frame_gray); 
-
-    // Detect faces on the frame in gray scale.
-    std::vector<cv::Rect> faces;
-    this->f_cascades[0].detectMultiScale(frame_gray, faces);
-
-    return faces;   
-
-}
-
 bool check_boxes(const std::vector<cv::Rect>& boxes, cv::Rect& rect){
     cv::Rect box;
     cv::Rect intersect;
@@ -81,7 +66,7 @@ bool check_boxes(const std::vector<cv::Rect>& boxes, cv::Rect& rect){
     return true;
 }
 
-std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
+std::vector<cv::Rect> FaceDetector::face_detect(const cv::Mat& frame) {
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
@@ -175,7 +160,7 @@ std::vector<cv::Rect> FaceDetector::face_detect(cv::Mat& frame) {
    return best_detections;
 }
 
-//-------------- HELPER FUNCTION --------------
+//-------------- HELPER FUNCTIONS --------------
 
 double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
     // Isolate the Region of Interest (ROI)
