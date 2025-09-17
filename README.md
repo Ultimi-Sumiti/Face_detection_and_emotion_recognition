@@ -1,3 +1,8 @@
+
+<p align="center">
+<img width="650" height="350" alt="icon_3" src="https://github.com/user-attachments/assets/8a3e7694-b632-4506-9343-f45166ebaf80" />
+</p>
+
 # Face Detection and Emotion Recognition
 
 This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection with a pre-trained convolutional neural network (CNN) for emotion classification.
