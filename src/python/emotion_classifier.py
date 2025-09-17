@@ -10,7 +10,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from keras.saving import load_model
 from keras.preprocessing import image
 import numpy as np
-print("INFO:" + YELLOW + "Modules loaded." + RESET) 
+print("INFO:" + YELLOW + " [Python] Modules loaded." + RESET) 
 
 
 ############################ Define Params ####################################

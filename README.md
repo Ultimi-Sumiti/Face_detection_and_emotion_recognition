@@ -125,7 +125,7 @@ make
 
 ```bash
 # Run the pipeline on images specifying the labels for the calculation of the metrics
-./out --imgsdir <path> -labelsdir <path> 
+./out --imgsdir <path> --labelsdir <path> 
 ```
 Or if you don't need to output the metrics you can also execute
 ```bash

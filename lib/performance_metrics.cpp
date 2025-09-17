@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <numeric>
 
+#define BLUE  "\033[34m"
+#define RESET   "\033[0m"
+
 namespace fs = std::filesystem;
 
 
@@ -64,9 +67,9 @@ void PerformanceMetrics::print_metrics(bool verbose){
         std::cerr << "Impossibile to open the file\n";
     }
     if(verbose){
-        std::cout<<std::endl<<"The avarage IOUs is: "<< avg_IOU<<std::endl;
-        std::cout<<"The precision over analyed images is: "<<precision<<std::endl;
-        std::cout<<"The recall over analized images is: "<<recall<<std::endl;
+        std::cout<<std::endl<<BLUE<<"The avarage IOUs is: "<< RESET << avg_IOU<<std::endl;
+        std::cout<< BLUE <<"The precision over analized images is: "<< RESET <<precision<<std::endl;
+        std::cout<< BLUE <<"The recall over analized images is: "<< RESET <<recall<<std::endl; 
     }
 }
 

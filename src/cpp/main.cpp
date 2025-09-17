@@ -16,7 +16,6 @@
 #define GREEN   "\033[32m"
 #define YELLOW  "\033[33m"
 #define RED     "\033[31m"
-#define BLUE    "\033[34m"
 #define INV     "\033[7m"
 
 // Haarcascades that can be used for face detection.
@@ -238,7 +237,7 @@ int main(int argc, char* argv[]) {
 
         // Get emotions for each face found.
         if (!faces.empty()) {
-            // __---------------- EMOTION RECOGNITION -------------------------
+            // ------------------ EMOTION RECOGNITION -------------------------
             // Open communication, send start message.
             std::ofstream chan_send(SEND_FIFO);
             chan_send << "start" << std::flush;
