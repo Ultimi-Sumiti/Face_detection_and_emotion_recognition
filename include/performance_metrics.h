@@ -3,7 +3,7 @@
 
 #include <opencv2/core/types.hpp>
 
-const float IOU_THRESHOLD = 0.5;
+const float IOU_THRESHOLD = 0.4;
 
 /*
     This class relize the purpose of summing up all the performance metrics 

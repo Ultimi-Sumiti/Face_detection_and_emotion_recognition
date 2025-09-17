@@ -120,12 +120,19 @@ float compute_MIOU(std::vector<float> IOUs){
         return 0.0f;
     }
 
+    int detection_count = 0;
+    for(int i = 0; i < IOUs.size(); i++){
+        if(IOUs[i] > 0){
+            detection_count ++;
+        }
+    }
+
     // Calculate the sum of all elements in the vector.
     //    std::accumulate(begin, end, initial_value)
     float total_iou = std::accumulate(IOUs.begin(), IOUs.end(), 0.0f);
 
     // Divide the sum by the number of elements to get the mean.
-    return total_iou / IOUs.size();
+    return total_iou / detection_count;
 }
 
 

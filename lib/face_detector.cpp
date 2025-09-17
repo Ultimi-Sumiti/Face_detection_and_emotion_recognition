@@ -124,7 +124,8 @@ std::vector<cv::Rect> FaceDetector::face_detect(const cv::Mat& frame) {
             score =  blur_score * faces[j].area();
             //std::cout << std::endl << "Face " << j << " -> Score: " << levelWeights[j] << std::endl;
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score >= min_score) && levelWeights[j] > threshold[i] && check_boxes(filtered_faces, faces[j])){
+            if((score >= min_score) && (levelWeights[j] > threshold[i]) && check_boxes(filtered_faces, faces[j])){
+                //std::cout<<levelWeights[i]<<std::endl;
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
@@ -161,7 +162,6 @@ std::vector<cv::Rect> FaceDetector::face_detect(const cv::Mat& frame) {
 }
 
 //-------------- HELPER FUNCTIONS --------------
-
 double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
     // Isolate the Region of Interest (ROI)
     cv::Mat roi_mat = image(roi);
