@@ -56,7 +56,6 @@ int parse_command_line(
                 break;
 
             default:
-                //printf("?? getopt returned character code 0%o ??\n", c);
                 return 1;
         }
     }
@@ -93,7 +92,6 @@ std::vector<std::string> get_all_filenames(const std::string& dir_path) {
 }
 
 
-// Function to parse the labels of the positions and emotion from the given textual file.
 std::vector<std::vector<float>> parse_labels(const std::string& filename){
     std::ifstream file(filename);
     std::string line;
@@ -123,7 +121,11 @@ std::vector<std::vector<float>> parse_labels(const std::string& filename){
     return faces;
 }
 
-std::vector<std::string> crop_images(cv::Mat img, std::vector<cv::Rect> faces, const std::string& folder_path) {
+std::vector<std::string> crop_images(
+        const cv::Mat& img, 
+        const std::vector<cv::Rect>& faces, 
+        const std::string& folder_path
+){
     // Vector of paths to return 
     std::vector<std::string> cropped_paths(faces.size());
 
@@ -140,7 +142,7 @@ std::vector<std::string> crop_images(cv::Mat img, std::vector<cv::Rect> faces, c
 }
 
 void remove_images(const std::vector<std::string>& cropped_paths){
-    for (const auto &cropped : cropped_paths) {
+    for (const std::string& cropped : cropped_paths) {
         try {
             // The remove function returns true if a file was deleted, false otherwise
             fs::remove(cropped);

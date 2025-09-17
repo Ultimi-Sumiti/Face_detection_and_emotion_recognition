@@ -11,6 +11,9 @@
 
 const std::vector<int> threshold = {100, 55};
 
+/*
+    This class relize a face detector.
+*/
 class FaceDetector{
 
     public:
@@ -36,9 +39,16 @@ class FaceDetector{
             return this->f_cascades;
         }
 
-        void draw_bbox(cv::Mat frame, std::vector<cv::Rect> faces, const std::vector<std::string>& labels);
-        std::vector<cv::Rect> face_detect(cv::Mat& frame);
-        std::vector<cv::Rect> vj_detect(cv::Mat frame); // POTENZIALMENTE SI PUÒ togliere TODO
+        // Draw all the bouding boxes in 'faces' in the input image 'frame'.
+        // For each face the corresponding label must be specified in 'labels'.
+        void draw_bbox(
+                cv::Mat& frame,
+                const std::vector<cv::Rect>& faces, 
+                const std::vector<std::string>& labels
+        );
+
+        // Detect faces in 'frame'. Returns the associated bounding boxes.
+        std::vector<cv::Rect> face_detect(const cv::Mat& frame);
 
     private:
 
@@ -51,7 +61,7 @@ class FaceDetector{
             cv::Scalar(0, 0, 255),     // red
             cv::Scalar(0, 255, 255),   // yellow
             cv::Scalar(0, 0, 0),       // black
-            cv::Scalar(80, 200, 120),     // green
+            cv::Scalar(80, 200, 120),  // green
             cv::Scalar(255, 255, 255), // white
             cv::Scalar(255, 0, 0),     // blue
             cv::Scalar(128, 0, 128),   // purple

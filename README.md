@@ -62,6 +62,8 @@ The system's evaluation was conducted at multiple levels to measure the effectiv
 ## Other Features of our application - Detection and Recognition on videos
 As additive features, we employed our system in other affine applications like detection and emotion recognition in videos and real-time camera videos. In practice our system based on the user's will can also process a video passed as path or the video exiting from one camera appendix of the computer's of the user.
 
+https://github.com/user-attachments/assets/59a87002-e1ba-4f44-a51a-571a10870527
+
 ## Project Structure
 ``` bash
 Face_detection_and_emotion_recognition/
