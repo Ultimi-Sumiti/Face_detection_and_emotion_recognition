@@ -1,11 +1,11 @@
 
 <p align="center">
-<img width="650" height="350" alt="icon_3" src="https://github.com/user-attachments/assets/8a3e7694-b632-4506-9343-f45166ebaf80" />
+   <img width="650" height="350" alt="icon_3" src="https://github.com/user-attachments/assets/8a3e7694-b632-4506-9343-f45166ebaf80" />
 </p>
 
 # Face Detection and Emotion Recognition
 
-This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection thath is the Viola Jones algorithm, with a pre-trained convolutional neural network (EfficientNet/ConvexNetTiny) for emotion classification.
+This project implements a computer vision system capable of detecting human faces in static images and recognizing their emotional expressions. The system combines a classical approach for face detection thath is the Viola Jones algorithm, with a convolutional neural network (EfficientNetV2B0) for emotion classification.
 
 ## Project Goal
 
@@ -15,15 +15,15 @@ The main objective is to develop a comprehensive facial analysis system that int
 
 The system is designed to analyze static images, providing the original image with detected faces circled and annotated with the predicted emotion as output.
 
-## ⚙️ System Architecture
+## System Architecture
 
 The project is divided into two main modules that work sequentially.
 
-### 1. Face Detection (C++ and OpenCV)
+### 1. Face Detection (C++ with OpenCV)
 
 The first component uses the **Viola-Jones algorithm**, a classic method known for its efficiency and accuracy. This part is implemented in **C++** using the **OpenCV** library and its cascade classifier framework to locate faces within an image.
 
-### 2. Emotion Recognition (Python and CNN)
+### 2. Emotion Recognition (Python with Keras)
 
 Once a face is detected, its region is passed to the second module. This component employs a **Convolutional Neural Network (CNN)** pre-trained on the FER-2013 dataset. The module, implemented in **Python**, classifies the facial expression into one of seven predefined categories:
 * Angry
@@ -34,37 +34,18 @@ Once a face is detected, its region is passed to the second module. This compone
 * Surprise
 * Neutral
 
-## 📊 Datasets Used
+## Datasets Used
 
-### Training Dataset (FER-2013)
+The CNN for emotion recognition was trained on the **FER-2013 dataset**. We applied a basic transfer learning and fine tuning technique to a pre-trained EfficientNetV2B0 architecture.
 
-The CNN for emotion recognition was trained on the **FER-2013 dataset**. This dataset consists of 35,887 grayscale images of 48x48 pixels, each labeled with one of the seven emotions.
+## Extra Features: Wecam and Video processing
 
-### Test Dataset
-
-For the overall system evaluation, a separate test dataset containing 46 images was used. Each image is annotated with bounding boxes for all visible faces and the corresponding emotion labels.
-
-## Performance Metrics
-
-The system's evaluation was conducted at multiple levels to measure the effectiveness of each component and the complete workflow.
-
-* **Face Detection Evaluation**:
-    * **Intersection over Union (IoU)**: To measure the accuracy of the predicted bounding boxes against the ground truth.
-    * **Precision and Recall**: To evaluate the trade-off between correct, missed, and false detections, based on an IoU threshold (commonly 0.5).
-
-* **Emotion Recognition Evaluation**:
-    * **Classification Accuracy**: To measure the proportion of correctly predicted emotions across all detected faces.
-    * **Confusion Matrix**: To analyze the detailed performance of the CNN for each emotion category.
-
-* **System-Level Evaluation**:
-    * The primary metric is the **percentage of detected faces with correctly classified emotions**, to assess the end-to-end performance of the system.
-
-## Other Features of our application - Detection and Recognition on videos
-As additive features, we employed our system in other affine applications like detection and emotion recognition in videos and real-time camera videos. In practice our system based on the user's will can also process a video passed as path or the video exiting from one camera appendix of the computer's of the user.
+As a bonus the program can track faces in a video or using the webcam. In the following there are some examples.
 
 https://github.com/user-attachments/assets/59a87002-e1ba-4f44-a51a-571a10870527
 
 ## Project Structure
+
 ``` bash
 Face_detection_and_emotion_recognition/
 ├── data/
@@ -85,19 +66,16 @@ Face_detection_and_emotion_recognition/
 └── README.md                      # main project documentation
 ```
 
-
-
-
 ## How to install and run the project
 
 *For detailed instructions on installing dependencies and running the code, please refer to the specific documentation within the repository.*
 
 Firstly you need to install the following dependecies if are not already installed in your machine.
 **Dependencies:**
+
 * C++ Compiler (GCC, Clang, etc.)
 * OpenCV
 * Python 3.x
-* Pytorch
 * Keras
 * NumPy
 * Matplotlib
@@ -108,8 +86,6 @@ After that for running the code you have to make the following commands:
 
 ---
 **Build**
-
-
 
 ```bash
 # Create the build directory
@@ -142,9 +118,15 @@ Otherwise if you want to do the same but on a video, you must to pass the path o
 # Run the pipeline on a video specifying the path
 ./out --video <path> 
 ```
+
+Help message:
+```bash
+Usage:
+ ./out --imgsdir <path> --labelsdir <path> --video <path> --webcam
   Where:
-   * --imgsdir is the input image directory path
-   * --labelsdir is the label directory path (OPTIONAL)  
-   * --video is the path of a video 
-   * --webcam to detect faces using webcam
+    --imgsdir is the input image directory path
+    --labelsdir is the label directory path (OPTIONAL)
+    --video is the path of a video
+    --webcam to detect faces using webcam
+```
     
