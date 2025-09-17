@@ -114,8 +114,8 @@ int main(int argc, char* argv[]) {
     int camera_device = 0;
     cv::VideoCapture capture;
     //-- 2. Read the video stream
-    std::string video_path = "../data/dataset_detection/video/last_of_us.mp4";
-    capture.open(camera_device);
+    std::string video_path = "video.mp4";
+    capture.open(video_path);
     //std::cout<<"Opened: "<<capture.isOpened();
     // Process all images.
     cv::Mat img;
