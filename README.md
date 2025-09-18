@@ -97,49 +97,62 @@ Firstly you need to install the following dependecies if are not already install
 
 After that for running the code you have to make the following commands:
 
----
-**Build**
+### Build the project
 
 ```bash
 # Create the build directory
-mkdir build
+mkdir build && cd build
 ```
+
 ```bash
 # Compile the entire pipeline
 cmake ..
 make
 ```
----
-**Run**
+
+### Execute
+
+First of all you need to create a directory in which you put all the images that you want to process. Example: create the directory `my_imgs` inside `./data`.
+
+Finally you can `cd` inside the build directory and execute:
 
 ```bash
-# Run the pipeline on images specifying the labels for the calculation of the metrics
-./out --imgsdir <path> --labelsdir <path> 
+./out --imgsdir ../data/my_imgs
 ```
-Or if you don't need to output the metrics you can also execute
+
+Additionally if you have a directory in which there are all the ground truth labels associated to each image (YOLO format), then you can execute with:
+
 ```bash
-# Run the pipeline specifying on images
-./out --imgsdir <path> 
+./out --imgsdir ../data/my_imgs --labelsdir ../data/my_labels
 ```
+
+The output images are stored under the folder `./output/detections/` and the metrics are saved in `./output/metrics.txt`.
+
+---
+
 If you want to process the pipeline on the video of one camera device connected with your machine you have to execute:
+
 ```bash
 # Run the pipeline with one camera of your computer
 ./out --webcam 
 ```
+
 Otherwise if you want to do the same but on a video, you must to pass the path of it with the folowing command:
+
 ```bash
 # Run the pipeline on a video specifying the path
-./out --video <path> 
+./out --video ../data/my_video.mp4
 ```
 
 Help message:
-```bash
+
+```
 Usage:
  ./out --imgsdir <path> --labelsdir <path> --video <path> --webcam
   Where:
-    --imgsdir is the input image directory path
-    --labelsdir is the label directory path (OPTIONAL)
-    --video is the path of a video
-    --webcam to detect faces using webcam
+    --imgsdir   ./inputs/dir ->  process all images in ./inputs/dir
+    --labelsdir ./labels/dir ->  labels associated to each img in ./inputs/dir (OPTIONAL)
+    --video     ./video.mp4  ->  process video.mp4
+    --webcam                 ->  process webcam (default device=0)
 ```
     
