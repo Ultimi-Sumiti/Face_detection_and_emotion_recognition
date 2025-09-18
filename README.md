@@ -90,6 +90,7 @@ Firstly you need to install the following dependecies if are not already install
 * OpenCV
 * Python 3.x
 * Keras
+* torch
 * NumPy
 * Matplotlib
 * Sklearn
@@ -127,6 +128,14 @@ Additionally if you have a directory in which there are all the ground truth lab
 ```
 
 The output images are stored under the folder `./output/detections/` and the metrics are saved in `./output/metrics.txt`.
+
+For example you can run the application on the (provided) test set with the following command:
+
+```
+./out \
+--imgsdir ../data/dataset_detection/images_scaled_max_1080 \
+--labelsdir ../data/dataset_detection/labels
+```
 
 ---
 
