@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 
 // -------------- MEMBER FUNCTIONS --------------
 // This member function compute the IOUs of the detected faces.
-std::vector<float> PerformanceMetrics::get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int>& ordering){
+std::vector<float> PerformanceMetrics::get_label_IOUs(const std::vector<cv::Rect>& detection,const std::vector<cv::Rect>& labels, std::vector<int>& ordering){
     float current_IoU;
     std::vector<float> IOUs( labels.size(), 0.0f); 
     ordering = std::vector<int> (detection.size()); 
@@ -98,8 +98,8 @@ void PerformanceMetrics::clean_metrics(){
 
 
 
-void PerformanceMetrics::add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int> emotions,
-    std::vector<int> emotion_labs){
+void PerformanceMetrics::add_image_detections(const std::vector<cv::Rect>& detection, const std::vector<cv::Rect>& labels,const std::vector<int>& emotions,
+    const std::vector<int>& emotion_labs){
     face_labels.push_back(labels);
     detected_faces.push_back(detection);
     emotion_labels.push_back(emotion_labs);
@@ -110,7 +110,7 @@ void PerformanceMetrics::add_image_detections(std::vector<cv::Rect>& detection, 
 // -------------- HELPER FUNCTIONS --------------
 
 // Function to compute the IOU (intersection over union) between 2 given boxes.
-float compute_IOU(cv::Rect& box1, cv::Rect& box2){
+float compute_IOU(const cv::Rect& box1, const cv::Rect& box2){
     // Define the variable to store the areas of intersection, union and the respective IoU.
     double areas_int;
     double areas_union;
@@ -127,7 +127,7 @@ float compute_IOU(cv::Rect& box1, cv::Rect& box2){
 
 
 // Function to compute the mean over IOUs (MIOU).
-float compute_MIOU(std::vector<float> IOUs){
+float compute_MIOU(const std::vector<float>& IOUs){
 
     // Handle the edge case of an empty vector to prevent division by zero.
     if (IOUs.empty()) {
@@ -151,7 +151,7 @@ float compute_MIOU(std::vector<float> IOUs){
 
 
 // Function to compute the precision.
-float compute_precision(std::vector<float> all_IOUs, float threshold, int all_detections){
+float compute_precision(const std::vector<float>& all_IOUs, float threshold, int all_detections){
     float correct_detections = 0;
     for(int i = 0; i < all_IOUs.size(); i++){
         if(all_IOUs[i] > threshold){
@@ -163,7 +163,7 @@ float compute_precision(std::vector<float> all_IOUs, float threshold, int all_de
 
 
 // Function to compute the recall.
-float compute_recall(std::vector<float> all_IOUs, float threshold){
+float compute_recall(const std::vector<float>& all_IOUs, float threshold){
     float correct_detections = 0;
     float all_labels = all_IOUs.size();
     for(int i = 0; i < all_labels; i++){
@@ -176,7 +176,7 @@ float compute_recall(std::vector<float> all_IOUs, float threshold){
 
 
 // Function to compute emotions labels.
-std::vector<int> get_label_emotion(std::string filename){
+std::vector<int> get_label_emotion(const std::string& filename){
     // Get the labels for the given filename.
     std::vector<std::vector<float>> labels = parse_labels(filename);
     std::vector<int> emotions;
@@ -188,7 +188,7 @@ std::vector<int> get_label_emotion(std::string filename){
 
 
 // Function to compute accuracy of classification task.
-float compute_emotions_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings){
+float compute_emotions_accuracy(const std::vector<std::vector<int>>& detected_emotions, const std::vector<std::vector<int>>& emotion_labels, const std::vector<std::vector<int>>& orderings){
     float count_equal = 0;
     int total_detected = 0;
     int corrected = 0;
@@ -217,7 +217,7 @@ float compute_emotions_accuracy(std::vector<std::vector<int>>& detected_emotions
     return count_equal / total_detected;
 }
 
-float compute_system_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings){
+float compute_system_accuracy(const std::vector<std::vector<int>>& detected_emotions, const std::vector<std::vector<int>>& emotion_labels, const std::vector<std::vector<int>>& orderings){
     float count_equal = 0;
     int total_present = 0;
     int corrected = 0;
