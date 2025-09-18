@@ -21,10 +21,7 @@
 // Haarcascades that can be used for face detection.
 const std::vector<std::string> HAARCASCADES_PATHS = {
     "../data/haarcascades/haarcascade_frontalface_alt.xml",
-    //"../data/haarcascades/haarcascade_frontalface_alt_tree.xml",
-    //"../data/haarcascades/haarcascade_frontalface_default.xml",
     "../data/haarcascades/haarcascade_frontalface_alt2.xml",
-    //"../data/haarcascades/haarcascade_profileface.xml",
 };
 
 // Folder path in which cropped images with faces are (temporary) stored.
