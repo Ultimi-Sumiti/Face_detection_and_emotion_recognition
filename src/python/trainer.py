@@ -1,15 +1,15 @@
 import os
 
-# Define environment variables.
+############################ Import Modules ###################################
 os.environ["KERAS_BACKEND"] = "torch"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-from keras.applications import EfficientNetV2B0, ConvNeXtTiny
-#from keras.applications.efficientnet import preprocess_input
-from keras.applications.convnext import preprocess_input
+from keras.applications import EfficientNetV2B0
+from keras.applications.efficientnet import preprocess_input
 
 from keras import Model, Sequential, Input
-from keras.layers import Dense, GlobalAveragePooling2D, RandomZoom, RandomFlip, RandomRotation, BatchNormalization
+from keras.layers import Dense, GlobalAveragePooling2D, RandomZoom
+from keras.layers import RandomFlip, RandomRotation, BatchNormalization
 from keras.optimizers import Adam
 from keras.utils import image_dataset_from_directory
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -19,21 +19,20 @@ import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 
-
-### PARAMETERS ###
-EPOCHS_PRETRAIN = 0
-EPOCHS_FINETUNE = 0
+############################ Define Params ####################################
+EPOCHS_PRETRAIN = 50 # Num epochs with only last layer unfrozen.
+EPOCHS_FINETUNE = 50 # Num epochs with entire model unfrozen.
 
 BATCH_SIZE = 32
 NUM_CLASSES = 7
 
 IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS = 224, 224, 3
 
-TRAIN_DIR = "../dataset_classification/train/"
-TEST_DIR = "../dataset_classification/test/"
+TRAIN_DIR = "../../data/dataset_classification/train/"
+TEST_DIR = "../../data/dataset_classification/test/"
 
 CHKP_PATH = "./model.keras"
-
+##############################################################################
 
 def create_datasets():
     train_ds, val_ds = image_dataset_from_directory(
@@ -100,7 +99,7 @@ def plot_confusion_matrix(y_true, y_pred, class_names):
 
 def build_model(data_augmentation):
     # Load pre-trained model and remove output layer.
-    base_model = ConvNeXtTiny(
+    base_model = EfficientNetV2B0(
         include_top=False,
         weights="imagenet",
         input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
@@ -138,13 +137,6 @@ def main():
     model = build_model(data_augmentation)
     model.summary()
 
-
-    #base_model = model.get_layer("efficientnetv2-b0")
-    #for layer in base_model.layers[-121:]:
-    #    print(layer.name)
-    #    #if not isinstance(layer, BatchNormalization):
-    #return
-
     # Define optimizer, loss and metrics used.
     model.compile(
         optimizer='adam',
@@ -155,14 +147,14 @@ def main():
     # Define callbacks.
     callbacks = [
         EarlyStopping(
-            monitor='val_accuracy',
-            patience=3,
+            monitor='val_loss',
+            patience=7,
             restore_best_weights=True
         ),
         ModelCheckpoint(
             filepath=CHKP_PATH,
-            monitor='val_accuracy',
-            mode='max',
+            monitor='val_loss',
+            mode='min',
             save_best_only=True
         )
     ]
@@ -175,11 +167,8 @@ def main():
         callbacks=callbacks
     )
 
-    # Fine-tuning the model.
-    #for layer in model.layers:
-    #    layer.trainable = True
-
-    base_model = model.get_layer("convnext_tiny")
+    # Retreive base model.
+    base_model = model.get_layer("efficientnetv2-b0")
     for layer in base_model.layers:
         if not isinstance(layer, BatchNormalization):
             layer.trainable = True
@@ -200,7 +189,7 @@ def main():
     )
 
     # Plot accuracy/loss.
-    #evalutate_model(model, test_ds, history_pretrain, history_finetune)
+    evalutate_model(model, test_ds, history_pretrain, history_finetune)
 
     # Plot confusion matrix.
     Y_pred = model.predict(test_ds)
@@ -213,5 +202,6 @@ def main():
     print("\nClassification Report:\n")
     print(classification_report(y_true, y_pred, target_names=class_names))
     
+
 if __name__ == "__main__":
     main()

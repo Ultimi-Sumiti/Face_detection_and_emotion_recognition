@@ -10,7 +10,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from keras.saving import load_model
 from keras.preprocessing import image
 import numpy as np
-print("INFO:" + YELLOW + " [Python] Modules loaded." + RESET) 
+print("INFO:" + YELLOW + "[Python] Modules loaded." + RESET) 
 
 
 ############################ Define Params ####################################
@@ -62,20 +62,15 @@ def main():
     while True: # Quit when the cpp process send an exit message.
 
         # Waiting the signal from image detection.
-        #print("Python: waiting c++ instructions.") # TODO: debug comment.
         with open(RECEIVE_FIFO, "r") as fifo:
 
             # Read the message.
             msg = fifo.readline()
-            #print(f"[Python] Recived from C++: {msg}") # TODO: debug comment.
 
             if msg == "exit":
                 return
             elif msg == "start":
                 pass # Do nothing.
-            #else: 
-            #    print("PYTHON ERROR! MESSAGE IS", msg) # TODO: Remove this.
-            #    return
                 
         # Load all images in the directory.
         imgs = [
@@ -84,7 +79,6 @@ def main():
         ]
 
         # Classify each image and send the results.
-        #print("Python: sending classes.") # TODO: debug comment.
         print("INFO:" + YELLOW + "[Python] Classifing faces..." + RESET)
         with open(SEND_FIFO, "w") as fifo:
             for img in imgs:
