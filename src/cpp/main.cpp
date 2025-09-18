@@ -194,6 +194,10 @@ int main(int argc, char* argv[]) {
     // Start concurrent thread with the emotion recognizer.
     std::thread emotion_rec_thread = std::thread(run_emotion_rec);
 
+
+    std::vector<int> emotions_val;
+    std::vector<int> emotions_labels;
+    std::vector<std::string> emotions;
     // Process all images.
     for (int itr = 0; true; itr++) {
 
@@ -242,20 +246,6 @@ int main(int argc, char* argv[]) {
         // Crop detected faces, store them to disk.
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
 
-
-        //  ------------------ PERFORMANCE METRICS ----------------------------
-
-        // Compute and store metrics in a file, if necessary.
-        if (!labels_paths.empty()) { 
-            std::vector<cv::Rect> labels_rect = compute_rectangles(
-                    labels_paths[itr],
-                    img.cols,
-                    img.rows
-            );
-            pm.add_image_detections(faces, labels_rect);
-        }
-
-
         // Get emotions for each face found.
         if (!faces.empty()) {
             // ------------------ EMOTION RECOGNITION -------------------------
@@ -268,8 +258,8 @@ int main(int argc, char* argv[]) {
             std::ifstream chan_receive(RECEIVE_FIFO);
 
             // Read all the messages (i.e. emotions) and close channel.
-            std::vector<std::string> emotions;
             std::string line;
+            emotions.clear();
             std::cout << "INFO: Received emotions:" << std::endl;
             while (std::getline(chan_receive, line)) {
                 emotions.push_back(line);
@@ -286,6 +276,22 @@ int main(int argc, char* argv[]) {
             // Draw boxes around detected faces and write emotions.
             detector.draw_bbox(img, faces, emotions);
         }
+
+        //  ------------------ PERFORMANCE METRICS ----------------------------
+
+        // Compute and store metrics in a file, if necessary.
+        if (!labels_paths.empty()) { 
+            std::vector<cv::Rect> labels_rect = compute_rectangles(
+                    labels_paths[itr],
+                    img.cols,
+                    img.rows
+            );
+            emotions_val = parse_emotions(emotions);
+            emotions_labels = get_label_emotion(labels_paths[itr]);
+            pm.add_image_detections(faces, labels_rect, emotions_val, emotions_labels);
+        }
+
+
 
         // Store the image with boxes drawn.
         switch (mode) {

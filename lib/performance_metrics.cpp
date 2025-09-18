@@ -1,5 +1,5 @@
 #include "../include/performance_metrics.h"
-
+#include "../include/utils.h"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -13,15 +13,16 @@ namespace fs = std::filesystem;
 
 // -------------- MEMBER FUNCTIONS --------------
 // This member function compute the IOUs of the detected faces.
-std::vector<float> PerformanceMetrics::get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels){
+std::vector<float> PerformanceMetrics::get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int>& ordering){
     float current_IoU;
     std::vector<float> IOUs( labels.size(), 0.0f); 
-
+    ordering = std::vector<int> (detection.size()); 
     for(int i = 0; i <  labels.size(); i++){
         for(int j = 0; j <  detection.size(); j++){
             current_IoU = compute_IOU( labels[i],  detection[j]);
             if(current_IoU > IOUs[i]){
                 IOUs[i] = current_IoU;
+                ordering[j] = i;
             }
         }
     }
@@ -36,7 +37,10 @@ void PerformanceMetrics::print_metrics(bool verbose){
     float precision = 0.0f;
     float recall = 0.0f;
     float avg_IOU = 0.0f;
+    float class_accuracy = 0.0f;
+    float system_accuracy = 0.0f;
     int count_detected = 0;
+    std::vector<int> ordering;
     if (outfile.is_open()) {
         //std::cout <<  path_true_labels << "Metrics : \n\n";
         //outfile <<  path_true_labels << " Metrics : \n";
@@ -45,7 +49,8 @@ void PerformanceMetrics::print_metrics(bool verbose){
             outfile << "\nIOUs of image " << j<< ": \n";
 
             count_detected += detected_faces[j].size();
-            std::vector<float> IOUs =  get_label_IOUs(detected_faces[j], face_labels[j]);
+            std::vector<float> IOUs =  get_label_IOUs(detected_faces[j], face_labels[j], ordering);
+            orderings.push_back(ordering);
             all_IOUs.insert(all_IOUs.end(), IOUs.begin(), IOUs.end());
 
             for (int i = 0; i <  face_labels[j].size(); i++)
@@ -57,9 +62,13 @@ void PerformanceMetrics::print_metrics(bool verbose){
         avg_IOU = compute_MIOU(all_IOUs);
         precision = compute_precision(all_IOUs, IOU_THRESHOLD, count_detected);
         recall = compute_recall(all_IOUs, IOU_THRESHOLD);
+        class_accuracy = compute_emotions_accuracy(detected_emotions, emotion_labels, orderings);
+        system_accuracy = compute_system_accuracy(detected_emotions, emotion_labels, orderings);
         outfile<<"The precision over analized images is: "<<precision<<std::endl;
         outfile<<"The recall over analized images is: "<<recall<<std::endl;
         outfile<<"The avarage IOUs is: "<<avg_IOU<<std::endl;
+        outfile<<"The accuracy of the emotion recognition process is: "<<class_accuracy<<std::endl;
+        outfile<<"The system accuracy is: "<<system_accuracy<<std::endl;
         outfile.close();
     }
     else
@@ -70,6 +79,8 @@ void PerformanceMetrics::print_metrics(bool verbose){
         std::cout<<std::endl<<BLUE<<"The avarage IOUs is: "<< RESET << avg_IOU<<std::endl;
         std::cout<< BLUE <<"The precision over analized images is: "<< RESET <<precision<<std::endl;
         std::cout<< BLUE <<"The recall over analized images is: "<< RESET <<recall<<std::endl; 
+        std::cout<< BLUE <<"The accuracy of the emotion recognition process is: "<< RESET<< class_accuracy<<std::endl;
+        std::cout<< BLUE <<"The system accuracy is: "<< RESET <<system_accuracy<<std::endl;
     }
 }
 
@@ -87,9 +98,12 @@ void PerformanceMetrics::clean_metrics(){
 
 
 
-void PerformanceMetrics::add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels){
+void PerformanceMetrics::add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int> emotions,
+    std::vector<int> emotion_labs){
     face_labels.push_back(labels);
     detected_faces.push_back(detection);
+    emotion_labels.push_back(emotion_labs);
+    detected_emotions.push_back(emotions);
 }
 
 
@@ -158,4 +172,78 @@ float compute_recall(std::vector<float> all_IOUs, float threshold){
         }
     }
     return (correct_detections/all_labels);  
+}
+
+
+// Function to compute emotions labels.
+std::vector<int> get_label_emotion(std::string filename){
+    // Get the labels for the given filename.
+    std::vector<std::vector<float>> labels = parse_labels(filename);
+    std::vector<int> emotions;
+    for(int i = 0; i < labels.size(); i++){
+        emotions.push_back(labels[i][0]);
+    }
+    return emotions;
+}
+
+
+// Function to compute accuracy of classification task.
+float compute_emotions_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings){
+    float count_equal = 0;
+    int total_detected = 0;
+    int corrected = 0;
+    for(int i = 0; i < emotion_labels.size(); i++){
+        std::vector<int> ordering = orderings[i];
+        if(emotion_labels[i].empty() || detected_emotions[i].empty() || ordering.empty()){ 
+            continue;
+        }
+        for(int j = 0; j < detected_emotions[i].size(); j++){
+            if(detected_emotions[i][j] == emotion_labels[i][ordering[j]]){
+                //std::cout <<"hello\n";
+                count_equal++;
+                corrected++;
+            }
+        }
+        total_detected += detected_emotions[i].size();
+        corrected = 0;
+    }
+    //std::cout << "amount of equal: " <<count_equal<<std::endl;
+
+    //std::cout << "amount of detection: " <<total_detected<<std::endl;
+
+    if(total_detected == 0){
+        return 0.0f;
+    }
+    return count_equal / total_detected;
+}
+
+float compute_system_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings){
+    float count_equal = 0;
+    int total_present = 0;
+    int corrected = 0;
+    for(int i = 0; i < emotion_labels.size(); i++){
+        std::vector<int> ordering = orderings[i];
+        total_present += emotion_labels[i].size();
+
+        if(emotion_labels[i].empty() || detected_emotions[i].empty() || ordering.empty()){ 
+            continue;
+        }
+
+        for(int j = 0; j < detected_emotions[i].size(); j++){
+            if(detected_emotions[i][j] == emotion_labels[i][ordering[j]]){
+                //std::cout <<"hello\n";
+                count_equal++;
+                corrected++;
+            }
+        }
+        corrected = 0;
+    }
+    //std::cout << "amount of equal: " <<count_equal<<std::endl;
+
+    //std::cout << "amount of detection: " <<total_detected<<std::endl;
+
+    if(total_present == 0){
+        return 0.0f;
+    }
+    return count_equal / total_present;
 }

@@ -19,20 +19,24 @@ class PerformanceMetrics{
         PerformanceMetrics(
                 const std::vector<std::vector<cv::Rect>>& detected_faces,
                 const std::vector<std::vector<cv::Rect>>& face_labels,
+                const std::vector<std::vector<int>>& emotion_labels,
+                const std::vector<std::vector<int>>& detected_emotions,
                 const std::string& out_file
                 ) : 
-            detected_faces(detected_faces), face_labels(face_labels), metrics_file_path(out_file){ clean_metrics();}
+            detected_faces(detected_faces), face_labels(face_labels), emotion_labels(emotion_labels), 
+            detected_emotions(detected_emotions), metrics_file_path(out_file){ clean_metrics();}
 
         // Empty constructor.
         PerformanceMetrics(const std::string& out_file) : metrics_file_path(out_file), face_labels({}), 
-            detected_faces({}){clean_metrics();}
+            detected_faces({}), emotion_labels({}), detected_emotions({}) {clean_metrics();}
 
         //MEMBER FUNCTIONS:
         // Setter.
-        void add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels);
+        void add_image_detections(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int> emotions,
+        std::vector<int> emotion_labels);
 
         // This member function compute the IOUs of the detected faces.
-        std::vector<float> get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels);
+        std::vector<float> get_label_IOUs(std::vector<cv::Rect>& detection, std::vector<cv::Rect>& labels, std::vector<int>& ordering);
 
         // Function to write in a file and computing in terminal the metrics for the scenepath.
         void print_metrics(bool verbose);
@@ -41,11 +45,16 @@ class PerformanceMetrics{
 
     private:
 
+        void order_emotions();
+
         // DATA MEMEBERS: 
 
         // Vectors in which memorize the coordinate of the read values from the label txt file.
         std::vector<std::vector<cv::Rect>> detected_faces;
         std::vector<std::vector<cv::Rect>> face_labels;
+        std::vector<std::vector<int>> detected_emotions;
+        std::vector<std::vector<int>> emotion_labels;
+        std::vector<std::vector<int>> orderings;
 
         std::string metrics_file_path;
 
@@ -66,4 +75,12 @@ float compute_precision(std::vector<float> all_IOUs, float threshold, int all_de
 // Function to compute the recall.
 float compute_recall(std::vector<float> all_IOUs, float threshold);
 
+// Function to compute emotions labels.
+std::vector<int> get_label_emotion(std::string filename);
+
+// Function to compute accuracy of classification task.
+float compute_emotions_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings);
+
+// Function used to compute entire system accuaracy.
+float compute_system_accuracy(std::vector<std::vector<int>>& detected_emotions, std::vector<std::vector<int>>& emotion_labels, std::vector<std::vector<int>> orderings);
 #endif

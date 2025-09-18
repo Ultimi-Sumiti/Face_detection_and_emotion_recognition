@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <opencv2/imgcodecs.hpp>
 #include <getopt.h>
+#include "../include/face_detector.h"
 
 namespace fs = std::filesystem;
 
@@ -158,4 +159,35 @@ int fifo_creation(const std::string& fifo_name) {
     if (!access(fifo_name.c_str(), F_OK)) return 0;
     // Try to create the fifo.
     return mkfifo(fifo_name.c_str(), 0666);
+}
+
+std::vector<int> parse_emotions(std::vector<std::string>& emotions){
+    std::vector<int> emotions_val;
+    for(int i = 0; i < emotions.size(); i ++){
+        std::stringstream ss(emotions[i]);
+        std::string word;
+        if(ss >> word){
+            if (word == "angry") {
+                emotions_val.push_back(0);
+            } else if (word == "disgust") {
+                emotions_val.push_back(1);
+            } else if (word == "fear") {
+                emotions_val.push_back(2);
+            } else if (word == "happy") {
+                emotions_val.push_back(3);
+            } else if (word == "sad") {
+                emotions_val.push_back(4);
+            } else if (word == "surprise") {
+                emotions_val.push_back(5);
+            } else if (word == "neutral") {
+                emotions_val.push_back(6);
+            }
+
+            
+            //std::cout << word <<std::endl;
+        }else{
+            std::cerr<<"Emotion not detected!"<<std::endl;
+        }
+    }
+    return emotions_val;
 }

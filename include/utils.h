@@ -16,6 +16,7 @@ static const char help_msg[] =
 "    --webcam                 ->  process wecam (default device=0)";
 
 
+
 // Function used to parse the command line arguments.
 // Returns 0 on succes, 1 on failure.
 int parse_command_line(
@@ -51,5 +52,8 @@ void remove_images(const std::vector<std::string>& cropped_paths);
 // Function used to create a fifo file.
 // Returns 0 on succes, 1 on failure.
 int fifo_creation(const std::string& fifo_name);
+
+// Function used to comnvert emotions string into correspondent int.
+std::vector<int> parse_emotions(std::vector<std::string>& emotions);
 
 #endif
