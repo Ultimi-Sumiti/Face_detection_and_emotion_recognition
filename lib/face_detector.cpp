@@ -1,45 +1,47 @@
 #include "../include/face_detector.h"
 
 #include <iostream>
+
 #include <opencv2/imgproc.hpp>
 
 #include "../include/utils.h"
+
 #include "../include/performance_metrics.h"
 
 
 //-------------- MEMBER FUNCTIONS --------------
 void FaceDetector::draw_bbox(
-        cv::Mat& frame,
-        const std::vector<cv::Rect>& faces, 
-        const std::vector<std::string>& labels
+    cv::Mat & frame,
+    const std::vector < cv::Rect > & faces,
+        const std::vector < std::string > & labels
 ) {
     for (size_t i = 0; i < faces.size(); i++) {
         std::string label = labels[i].substr(0, labels[i].find(" "));
 
         cv::Scalar color = cv::Scalar(255, 255, 255); // default = white
-        if (this->label_color.find(label) != this->label_color.end())
-            color = this->label_color[label];
+        if (this -> label_color.find(label) != this -> label_color.end())
+            color = this -> label_color[label];
 
         // Draw the Bounding box of the detected face.
         cv::rectangle(frame, faces[i], color, 3);
 
         // Font parameters
         int font_face = cv::FONT_HERSHEY_SIMPLEX;
-        double font_scale = 0.7;  
+        double font_scale = 0.7;
         int thickness = 1;
 
         // Calculating size of the text.
         int baseline = 0;
-        cv::Size text_size = cv::getTextSize(labels[i], font_face, font_scale, thickness, &baseline);
+        cv::Size text_size = cv::getTextSize(labels[i], font_face, font_scale, thickness, & baseline);
 
         // Position of the text.
         cv::Point text_org(faces[i].x, faces[i].y - 5);
 
         // Background rectangle for text label.
         cv::rectangle(frame,
-                      text_org + cv::Point(0, baseline),
-                      text_org + cv::Point(text_size.width, -text_size.height),
-                      color, cv::FILLED);
+            text_org + cv::Point(0, baseline),
+            text_org + cv::Point(text_size.width, -text_size.height),
+            color, cv::FILLED);
 
         // If color is yellow or white change the text color into balck.
         cv::Scalar text_color = cv::Scalar(255, 255, 255);
@@ -48,96 +50,86 @@ void FaceDetector::draw_bbox(
 
         // Draw the text over the colored backround.
         cv::putText(frame, labels[i], text_org,
-                    font_face, font_scale, text_color, thickness, cv::LINE_AA);
+            font_face, font_scale, text_color, thickness, cv::LINE_AA);
     }
 }
 
-bool check_boxes(const std::vector<cv::Rect>& boxes, cv::Rect& rect){
+// This function check if there are crossing detections boxes.
+bool check_boxes(const std::vector < cv::Rect > & boxes, cv::Rect & rect) {
     cv::Rect box;
     cv::Rect intersect;
-    for(int i = 0; i < boxes.size(); i++){
+    for (int i = 0; i < boxes.size(); i++) {
         // Compute intersection box between detected box and previous detections.
         intersect = boxes[i] & rect;
         box = boxes[i];
-        if(compute_IOU(intersect, rect) > 0.3|| compute_IOU(intersect, box) > 0.3){
+        if (compute_IOU(intersect, rect) > 0.3 || compute_IOU(intersect, box) > 0.3) {
             return false;
         }
     }
     return true;
 }
 
-std::vector<cv::Rect> FaceDetector::face_detect(const cv::Mat& frame) {
+// This function uses Viola Jones to detect faces.
+std::vector < cv::Rect > FaceDetector::face_detect(const cv::Mat & frame) {
     cv::Mat frame_gray;
     // Convert into GRAY the frame passed.
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
     // Histogram equalization.
-    cv::equalizeHist(frame_gray, frame_gray); 
+    cv::equalizeHist(frame_gray, frame_gray);
     // Computing the area of the frame.
     int area = frame.rows * frame.cols;
 
     // Detect faces on the frame in gray scale.
-    std::vector<cv::Rect> faces;
-    std::vector<int> rejectLevels;   
-    std::vector<double> levelWeights;   // This will hold the confidence scores.
-    std::vector<double> blurScore;
-
+    std::vector < cv::Rect > faces;
+    std::vector < int > rejectLevels;
+    std::vector < double > levelWeights; // This will hold the confidence scores.
+    std::vector < double > blurScore;
 
     cv::CascadeClassifier final_classifier;
     int score = 0;
-    std::vector<cv::Rect> filtered_faces; 
-    std::vector<cv::Rect> best_detections; 
+    std::vector < cv::Rect > filtered_faces;
+    std::vector < cv::Rect > best_detections;
     int min_area = area / 150;
-    int min_side = static_cast<int>(std::sqrt(min_area)) ;
+    int min_side = static_cast < int > (std::sqrt(min_area));
     int best_score = 0;
     int best_index = 0;
     int actual_score = 0;
     int best_count = 0;
     float blur_score = 0.0f;
-    cv::Rect img_rect = cv::Rect(0,0, frame.cols,frame.rows);
+    cv::Rect img_rect = cv::Rect(0, 0, frame.cols, frame.rows);
     float min_blur = calculateBlurScore(frame, img_rect) / 4;
     int min_score = min_blur * min_area;
-    //int min_weight = 80;
 
     // Checking all possible faces cascades. 
-    //std::cout<<"cascades: "<<this->f_cascades.size();
-    for(int i = 0; i < this->f_cascades.size(); i++){
-        //std::cout<<std::endl<< "Testing classifier number: "<<i<<std::endl;
+    for (int i = 0; i < this -> f_cascades.size(); i++) {
         faces.clear();
-        this->f_cascades[i].detectMultiScale(
+        this -> f_cascades[i].detectMultiScale(
             frame_gray,
             faces,
             rejectLevels,
             levelWeights,
             1.05, // scaleFactor
-            15,   // minNeighbors
-            0,   // flags
+            15, // minNeighbors
+            0, // flags
             cv::Size(min_side, min_side), // minSize
-            cv::Size(),       // maxSize
-            true              // outputRejectLevels true
+            cv::Size(), // maxSize
+            true // outputRejectLevels true
         );
 
-        //std::cout << "Found " << faces.size() << " faces." << std::endl;
         // Loop through each detected face.
-        for(int j = 0; j < faces.size(); j++){
+        for (int j = 0; j < faces.size(); j++) {
             // Print the confidence score for the corresponding face.
             blur_score = calculateBlurScore(frame, faces[j]);
-            score =  blur_score * faces[j].area();
-            //std::cout << std::endl << "Face " << j << " -> Score: " << levelWeights[j] << std::endl;
+            score = blur_score * faces[j].area();
             // Here we filter the detection: if they're both not defined and small we filter out.
-            if((score >= min_score) && (levelWeights[j] > threshold[i]) && check_boxes(filtered_faces, faces[j])){
-                //std::cout<<levelWeights[i]<<std::endl;
+            if ((score >= min_score) && (levelWeights[j] > threshold[i]) && check_boxes(filtered_faces, faces[j])) {
                 filtered_faces.push_back(faces[j]);
                 actual_score += score;
             }
         }
-        
-        if(faces.size() > 0){
-            //std::cout<< "(Selected "<<filtered_faces.size()<<")"<<std::endl;
-        }
-
 
         // Storing new best performance if current classifier perfomance are the best.
-        if (actual_score > best_score){
+        if (actual_score > best_score) {
             best_detections = filtered_faces;
             best_score = actual_score;
             best_index = i;
@@ -148,21 +140,15 @@ std::vector<cv::Rect> FaceDetector::face_detect(const cv::Mat& frame) {
         actual_score = 0;
     }
 
-    //std::cout<<std::endl<<"Best classifier is: "<<file_paths[best_index]<<std::endl; 
-    //std::cout<<"  with score: "<<best_score<<std::endl<<std::endl;
+    final_classifier = this -> f_cascades[best_index];
 
-    final_classifier = this->f_cascades[best_index];
-
-    //std::cout<<"Detected rectangles position and size: "<<std::endl;
-    //printRectDetails(best_detections);
-    //std::cout<<std::endl;
-
-   
-   return best_detections;
+    return best_detections;
 }
 
 //-------------- HELPER FUNCTIONS --------------
-double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
+// This function uses Laplace transform to tell how defined a rect in an image is.
+double calculateBlurScore(const cv::Mat & image,
+    const cv::Rect & roi) {
     // Isolate the Region of Interest (ROI)
     cv::Mat roi_mat = image(roi);
 
@@ -183,8 +169,8 @@ double calculateBlurScore(const cv::Mat& image, const cv::Rect& roi) {
     return stddev.val[0] * stddev.val[0];
 }
 
-
-void printRectDetails(const std::vector<cv::Rect>& rects) {
+// This function is used as a help in the debugging phase to print details about rectangles.
+void printRectDetails(const std::vector < cv::Rect > & rects) {
     // Check if the vector is empty first
     if (rects.empty()) {
         std::cout << "The vector of rectangles is empty." << std::endl;
@@ -193,30 +179,30 @@ void printRectDetails(const std::vector<cv::Rect>& rects) {
 
     // Use an index-based loop to easily number the rectangles
     for (size_t i = 0; i < rects.size(); ++i) {
-        const cv::Rect& r = rects[i];
+        const cv::Rect & r = rects[i];
 
         // Calculate the center coordinates
         int centerX = r.x + r.width / 2;
         int centerY = r.y + r.height / 2;
 
         // Print the details in a formatted way
-        std::cout << "Rect " << i << ":"
-                  << " Center=[" << centerX << ", " << centerY << "],"
-                  << " Width=" << r.width << ","
-                  << " Height=" << r.height
-                  << std::endl;
+        std::cout << "Rect " << i << ":" <<
+            " Center=[" << centerX << ", " << centerY << "]," <<
+            " Width=" << r.width << "," <<
+            " Height=" << r.height <<
+            std::endl;
     }
 }
 
-std::vector<cv::Rect> compute_rectangles(std::string& filename, int img_width, int img_height){
-    std::vector<std::vector<float>> labels = parse_labels(filename);
+// This function returns the rectangles associated with labels.
+std::vector < cv::Rect > compute_rectangles(std::string & filename, int img_width, int img_height) {
+    std::vector < std::vector < float >> labels = parse_labels(filename);
     int x, y, width, height;
-    std::vector<cv::Rect> rects_label;
+    std::vector < cv::Rect > rects_label;
 
-    for (const auto& face: labels){
-        x = (face[1] - face[3]/2) * img_width;
-        y = (face[2] - face[4]/2) * img_height;
-        //std::cout<<x<<" "<<y<<std::endl;
+    for (const auto & face: labels) {
+        x = (face[1] - face[3] / 2) * img_width;
+        y = (face[2] - face[4] / 2) * img_height;
         width = face[3] * img_width;
         height = face[4] * img_height;
         rects_label.push_back(cv::Rect(x, y, width, height));
