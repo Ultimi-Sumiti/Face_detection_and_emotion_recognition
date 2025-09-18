@@ -10,10 +10,10 @@ static const char help_msg[] =
 "Usage:\n"
 " ./out --imgsdir <path> --labelsdir <path> --video <path> --webcam\n"
 "  Where:\n"
-"    --imgsdir is the input image directory path\n"
-"    --labelsdir is the label directory path (OPTIONAL)\n"
-"    --video is the path of a video\n"
-"    --webcam to detect faces using webcam";
+"    --imgsdir   ./inputs/dir ->  process all images in ./input/dir\n"
+"    --labelsdir ./labels/dir ->  labels associated to each img in ./inputs/dir (OPTIONAL)\n"
+"    --video     ./video.mp4  ->  process video.mp4\n"
+"    --webcam                 ->  process wecam (default device=0)";
 
 
 // Function used to parse the command line arguments.

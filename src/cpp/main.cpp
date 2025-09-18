@@ -48,8 +48,8 @@ const std::string EMOTION_REC_CMD = "python3 ../src/python/emotion_classifier.py
 
 
 // Function used to run the emotion recognition model (in Python).
-void run_emotion_rec() {
-    int ret = system(EMOTION_REC_CMD.c_str());
+void run_emotion_rec(void) {
+    system(EMOTION_REC_CMD.c_str());
 }
 
 
@@ -95,12 +95,28 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> imgs_paths, labels_paths;
 
     if (mode == 2) {
+
+        // Retreive all images to process.
         imgs_paths = get_all_filenames(imgs_dir_path);
         std::sort(imgs_paths.begin(), imgs_paths.end());
 
+        // If associated labels are provided.
         if (!labels_dir_path.empty()) {
+
+            // Retreive labels.
             labels_paths = get_all_filenames(labels_dir_path);
             std::sort(labels_paths.begin(), labels_paths.end());
+
+            // Manage errors.
+            if (labels_paths.empty()) {
+                std::cerr << RED "ERROR: Labels directory is empty." RESET
+                          << std::endl;
+                return EXIT_FAILURE;
+            } else if (labels_paths.size() != imgs_paths.size()) {
+                std::cerr << RED "ERROR: Images directory and labels directory "
+                                 "sizes must concide." RESET << std::endl;
+                return EXIT_FAILURE;
+            }
         }
     }
 
@@ -126,8 +142,8 @@ int main(int argc, char* argv[]) {
             }
 
             // Setup writer.
-            int w = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH));
-            int h = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT));
+            int w = (int) capture.get(cv::CAP_PROP_FRAME_WIDTH);
+            int h = (int) capture.get(cv::CAP_PROP_FRAME_HEIGHT);
             double fps = capture.get(cv::CAP_PROP_FPS);
             writer = cv::VideoWriter(
                     VIDEO_OUT,
@@ -148,6 +164,8 @@ int main(int argc, char* argv[]) {
     // Create fifo files used for Inter Process Communication (CPP <-> Python).
     if (fifo_creation(SEND_FIFO) || fifo_creation(RECEIVE_FIFO)) {
         std::cerr << RED "ERROR: Cannot create fifo files... aborting" RESET <<std::endl;
+        std::cerr << "errno: " << errno << std::endl 
+                  << std::strerror(errno) << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -224,13 +242,16 @@ int main(int argc, char* argv[]) {
         // Crop detected faces, store them to disk.
         std::vector<std::string> cropped_paths = crop_images(img, faces, CROPPED_IMGS_PATH);
 
-        std::vector<cv::Rect> labels_rect; // Used to compute the metrics.
 
         //  ------------------ PERFORMANCE METRICS ----------------------------
 
         // Compute and store metrics in a file, if necessary.
         if (!labels_paths.empty()) { 
-            labels_rect = compute_rectangles(labels_paths[itr], img.cols, img.rows);
+            std::vector<cv::Rect> labels_rect = compute_rectangles(
+                    labels_paths[itr],
+                    img.cols,
+                    img.rows
+            );
             pm.add_image_detections(faces, labels_rect);
         }
 
@@ -285,7 +306,8 @@ int main(int argc, char* argv[]) {
                 if (cv::imwrite(out_path, img))
                     std::cout << "INFO: '" << out_path << "' saved." << std::endl;
                 else
-                    std::cerr << RED << "ERROR: Couldn't save '" << out_path << "' to disk." << RESET << std::endl;
+                    std::cerr << RED "ERROR: Couldn't save '" << out_path 
+                              << "' to disk." RESET << std::endl;
                 break;
 
         }

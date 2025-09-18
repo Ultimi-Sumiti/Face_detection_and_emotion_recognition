@@ -20,11 +20,10 @@ int parse_command_line(
         int& webcam
 ) {
     while (1) {
-        //int option_index = 0;
         static struct option long_options[] = {
             {"imgsdir",     required_argument, 0,  1 },
             {"labelsdir",   required_argument, 0,  2 },
-            {"webcam",      optional_argument, 0,  3 },
+            {"webcam",      no_argument,       0,  3 },
             {"video",       required_argument, 0,  4 },
             {0,             0,                 0,  0 }
         };
