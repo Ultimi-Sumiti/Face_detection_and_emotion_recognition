@@ -1,3 +1,5 @@
+// Alessandro Chinello
+
 #ifndef FACE_DETECTOR_H
 #define FACE_DETECTOR_H
 
@@ -37,7 +39,7 @@ class FaceDetector {
                 }
             }
         }
-        
+
         // Copy constructor.
         FaceDetector(const FaceDetector & ) = default;
 

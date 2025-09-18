@@ -1,3 +1,5 @@
+# Luca Piai
+
 # Output colors.
 YELLOW = "\033[33m"
 RESET  = "\033[0m"

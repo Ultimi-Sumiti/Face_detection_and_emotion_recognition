@@ -1,3 +1,5 @@
+// Mattia Scantamburlo
+
 #ifndef PERFORMANCE_METRICS_H
 #define PERFORMANCE_METRICS_H
 

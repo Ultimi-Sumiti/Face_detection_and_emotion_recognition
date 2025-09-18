@@ -1,3 +1,5 @@
+// Mattia Scantamburlo
+
 #include "../include/face_detector.h"
 
 #include <iostream>
